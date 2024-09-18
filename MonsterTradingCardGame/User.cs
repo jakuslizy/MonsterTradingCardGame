@@ -2,21 +2,25 @@ namespace MonsterTradingCardGame;
 
 public class User
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public List<Card> Stack { get; set; }
-    public List<Card> Deck { get; set; }
-    public int Coins { get; set; }
-    public int Elo { get; set; }
+    public string username
+    {
+        get;
+        private set;
+    }
+    public string password { get; private set; }
+    private List<Card> Stack ;
+    private Card[] deckCards ;
+    public int coins { get; private set; }
+    public int elo { get; private set; }
     
     public User(string username, string password)
     {
-        Username = username;
-        Password = password;
+        this.username = username;
+        this.password = password;
         Stack = new List<Card>();
-        Deck = new List<Card>();
-        Coins = 20;
-        Elo = 100;
+        deckCards = new Card[4];
+        coins = 20;
+        elo = 100;
     }
 }
 
