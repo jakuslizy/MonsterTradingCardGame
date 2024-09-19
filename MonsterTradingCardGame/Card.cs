@@ -15,8 +15,8 @@ public abstract class Card
 
     public Card(string name, int damage, ElementType elementType)
     {
-        this.Name = name;
-        this.Damage = damage;
-        this.ElementType = elementType;
+        Name = name;
+        Damage = damage;
+        ElementType = elementType;
     }
 }

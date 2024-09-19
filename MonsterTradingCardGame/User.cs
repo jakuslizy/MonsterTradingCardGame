@@ -11,12 +11,17 @@ public class User
     
     public User(string username, string password)
     {
-        this.Username = username;
-        this.Password = password;
+        Username = username;
+        Password = password;
         _stack = new List<Card>();
         _deckCards = new Card[4];
         Coins = 20;
         Elo = 100;
+    }
+    
+    public void AddCardToStack(Card card)
+    {
+        _stack.Add(card);
     }
 }
 
