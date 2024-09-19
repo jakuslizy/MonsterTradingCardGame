@@ -5,7 +5,7 @@ public class User
     public string Username { get; private set; }
     public string Password { get; private set; }
     private List<Card> _stack ;
-    private Card[] _deckCards ;
+    private Card[] _deck ;
     public int Coins { get; private set; }
     public int Elo { get; private set; }
     
@@ -14,10 +14,10 @@ public class User
         Username = username;
         Password = password;
         _stack = new List<Card>();
-        _deckCards = new Card[4];
+        _deck = new Card[4];
         Coins = 20;
         Elo = 100;
-    }
+    } 
     
     public void AddCardToStack(Card card)
     {
