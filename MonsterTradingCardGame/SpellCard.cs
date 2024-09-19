@@ -1,8 +1,3 @@
 namespace MonsterTradingCardGame;
 
-public class SpellCard : Card
-{
-    public SpellCard(string name, int damage, ElementType elementType) : base(name, damage, elementType)
-    {
-    }
-}
+public class SpellCard(string name, int damage, ElementType elementType) : Card(name, damage, elementType);
