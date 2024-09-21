@@ -1,0 +1,48 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Card {
+  # Name: string
+  # Damage: int
+  # ElementType: ElementType
+  + Card(name: string, damage: int, elementType: ElementType)
+}
+
+class MonsterCard {
+  + MonsterCard(name: string, damage: int, elementType: ElementType)
+}
+
+class SpellCard {
+  + SpellCard(name: string, damage: int, elementType: ElementType)
+}
+
+class User {
+  - Username: string
+  - Password: string
+  - _stack: List<Card>
+  - _deck: Card[]
+  - Coins: int
+  - Elo: int
+  + User(username: string, password: string)
+  + AddCardToStack(card: Card)
+}
+
+class Battle {
+  - Player1: User
+  - Player2: User
+  - {static} MaxRounds: int
+  + Battle(player1: User, player2: User)
+}
+
+enum ElementType {
+  Normal
+  Fire
+  Water
+}
+
+Card <|-- MonsterCard
+Card <|-- SpellCard
+Card "1" *-- "1" ElementType
+User "1" o-- "*" Card : has >
+Battle "1" -- "2" User : involves >
+@enduml
