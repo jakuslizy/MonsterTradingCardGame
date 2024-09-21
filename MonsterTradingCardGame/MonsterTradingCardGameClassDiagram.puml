@@ -21,8 +21,8 @@ class User {
   - Password: string
   - _stack: List<Card>
   - _deck: Card[]
-  - Coins: int
-  - Elo: int
+  + Coins: int
+  + Elo: int
   + User(username: string, password: string)
   + AddCardToStack(card: Card)
 }
@@ -32,6 +32,15 @@ class Battle {
   - Player2: User
   - {static} MaxRounds: int
   + Battle(player1: User, player2: User)
+}
+
+class Package {
+  - Cards: List<Card>
+  + {static} PackagePrice: int
+  - {static} CardsPerPackage: int
+  + AddCard(card: Card)
+  + IsComplete(): bool
+  + GetCards(): IReadOnlyList<Card>
 }
 
 enum ElementType {
@@ -45,4 +54,5 @@ Card <|-- SpellCard
 Card "1" *-- "1" ElementType
 User "1" o-- "*" Card : has >
 Battle "1" -- "2" User : involves >
+Package "1" *-- "5" Card : contains >
 @enduml
