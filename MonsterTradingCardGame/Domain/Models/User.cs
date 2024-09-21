@@ -1,4 +1,4 @@
-namespace MonsterTradingCardGame;
+namespace MonsterTradingCardGame.Domain.Models;
 
 public class User
 {

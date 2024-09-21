@@ -1,6 +1,6 @@
-using System;
+using MonsterTradingCardGame.Domain.Models;
 
-namespace MonsterTradingCardGame;
+namespace MonsterTradingCardGame.Business.Services;
 
 public class Battle
 {
