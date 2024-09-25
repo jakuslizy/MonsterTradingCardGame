@@ -7,14 +7,24 @@ public enum ElementType
     Water
 } 
 
-public abstract class Card(string name, int damage, ElementType elementType)
+public abstract class Card
 {
-    public string Name { get; protected set; } = name;
-    protected int Damage { get; set; } = damage;
-    public ElementType ElementType { get;  protected set; } = elementType;
+    public string Name { get; }
+    public int Damage { get; }
+    public ElementType ElementType { get; } 
+    protected Card(string name, int damage, ElementType elementType)
+    {
+        Name = name;
+        Damage = damage;
+        ElementType = elementType;
+    }
 
     public virtual int CalculateDamage(Card opponent)
     {
         return Damage;
+    }
+    public override string ToString()
+    {
+        return $"{Name} (Damage: {Damage}, Element: {ElementType})";
     }
 }
