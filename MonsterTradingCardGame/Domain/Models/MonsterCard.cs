@@ -6,12 +6,5 @@ public class MonsterCard : Card
         : base(name, damage, elementType)
     {
     }
-
-    public override int CalculateDamage(Card opponent)
-    {
-        // Bei Monster vs Monster nur der Basisschaden wird berücksichtigt.
-        // Elemente sind nicht wichtig
-        return Damage;
-    }
 }
 

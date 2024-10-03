@@ -18,11 +18,7 @@ public abstract class Card
         Damage = damage;
         ElementType = elementType;
     }
-
-    public virtual int CalculateDamage(Card opponent)
-    {
-        return Damage;
-    }
+    
     public override string ToString()
     {
         return $"{Name} (Damage: {Damage}, Element: {ElementType})";
