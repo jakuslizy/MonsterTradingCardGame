@@ -8,7 +8,7 @@ public class User
     public List<Card> Deck { get; private set; }
     public int Coins { get; private set; }
     public int Elo { get; private set; }
-    
+
     public User(string username, string password)
     {
         Username = username;
@@ -17,8 +17,8 @@ public class User
         Deck = new List<Card>(4);
         Coins = 20;
         Elo = 100;
-    } 
-    
+    }
+
     public void AddCardToStack(Card card)
     {
         _stack.Add(card);
@@ -28,10 +28,9 @@ public class User
     {
         Deck.Add(card);
     }
-    
+
     public void UpdateElo(int change)
     {
         Elo += change;
     }
 }
-

@@ -5,7 +5,7 @@ public class Package
     private List<Card> Cards { get; } = []; //= new List<Card>()
     public const int PackagePrice = 5;
     private const int CardsPerPackage = 5;
-    
+
     public void AddCard(Card card)
     {
         if (Cards.Count < CardsPerPackage)
@@ -17,7 +17,7 @@ public class Package
             throw new InvalidOperationException("Package is already full");
         }
     }
-    
+
     //public bool IsComplete()
     // {
     //     return Cards.Count == CardsPerPackage;

@@ -6,6 +6,5 @@ namespace MonsterTradingCardGame.Domain.Models
             : base(name, damage, elementType)
         {
         }
-        
     }
 }
