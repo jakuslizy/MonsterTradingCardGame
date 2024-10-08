@@ -1,58 +1,81 @@
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Business.Logic;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class BattleService(User player1, User player2)
+public class BattleService
 {
-    private User Player1 { get; set; } = player1;
-    private User Player2 { get; set; } = player2;
-    private const int MaxRounds = 100;
-    private int _round = 1;
+	private User Player1 { get; }
+	private User Player2 { get; }
+	private const int MaxRounds = 100;
+	private List<string> BattleLog { get; } = new List<string>();
+	private BattleLogic _battleLogic;
 
-    public void Playtestlizy()
-    {
-        while (_round < MaxRounds)
-        {
-            Random rnd = new Random();
-            Card player1Card = Player1.Deck[rnd.Next(Player1.Deck.Count)];
-            Card player2Card = Player2.Deck[rnd.Next(Player2.Deck.Count)];
-            int player1Damage = CalculateDamage(player1Card, player2Card);
-            int player2Damage = CalculateDamage(player2Card, player1Card);
-            Console.WriteLine($"-----Round: {_round}-----");
-            if (player1Damage > player2Damage) Console.WriteLine("Pluto sollte ein Planet sein");
-            else Console.WriteLine("Pluto sollte weiterhin kein Planet sein");
-            _round++;
-        }
-    }
+	public BattleService(User player1, User player2)
+	{
+		Player1 = player1;
+		Player2 = player2;
+		_battleLogic = new BattleLogic();
+	}
+
+	public string ExecuteBattle()
+	{
+		var player1Deck = new List<Card>(Player1.Deck);
+		var player2Deck = new List<Card>(Player2.Deck);
+		var random = new Random();
+
+		for (int round = 1; round <= MaxRounds; round++)
+		{
+			if (!player1Deck.Any() || !player2Deck.Any())
+				break;
+
+			var card1 = player1Deck[random.Next(player1Deck.Count)];
+			var card2 = player2Deck[random.Next(player2Deck.Count)];
+
+			BattleLog.Add($"Runde {round}: {Player1.Username}'s {card1.Name} gegen {Player2.Username}'s {card2.Name}");
+
+			var winner = _battleLogic.DetermineRoundWinner(card1, card2);
+
+			if (winner == 1)
+			{
+				player2Deck.Remove(card2);
+				player1Deck.Add(card2);
+				BattleLog.Add($"{Player1.Username} gewinnt die Runde!");
+			}
+			else if (winner == 2)
+			{
+				player1Deck.Remove(card1);
+				player2Deck.Add(card1);
+				BattleLog.Add($"{Player2.Username} gewinnt die Runde!");
+			}
+			else
+			{
+				BattleLog.Add("Unentschieden in dieser Runde!");
+			}
+		}
+
+		UpdatePlayerStats(player1Deck.Count, player2Deck.Count);
+		return string.Join("\n", BattleLog);
+	}
 
 
-    public int CalculateDamage(Card playerCard, Card opponentCard)
-    {
-        //Basis Schaden berechnen und Element-Logik anwenden
-        if (IsEffectiveAgainst(playerCard.ElementType, opponentCard.ElementType))
-        {
-            return playerCard.Damage * 2;
-        }
-
-        if (IsWeakAgainst(playerCard.ElementType, opponentCard.ElementType))
-        {
-            return playerCard.Damage / 2;
-        }
-
-        return playerCard.Damage;
-    }
-
-    private bool IsEffectiveAgainst(ElementType playerElement, ElementType opponentElement)
-    {
-        return (playerElement == ElementType.Water && opponentElement == ElementType.Fire) ||
-               (playerElement == ElementType.Fire && opponentElement == ElementType.Normal) ||
-               (playerElement == ElementType.Normal && opponentElement == ElementType.Water);
-    }
-
-    private bool IsWeakAgainst(ElementType playerElement, ElementType opponentElement)
-    {
-        return (playerElement == ElementType.Fire && opponentElement == ElementType.Water) ||
-               (playerElement == ElementType.Normal && opponentElement == ElementType.Fire) ||
-               (playerElement == ElementType.Water && opponentElement == ElementType.Normal);
-    }
+	private void UpdatePlayerStats(int player1CardCount, int player2CardCount)
+	{
+		if (player1CardCount > player2CardCount)
+		{
+			Player1.UpdateElo(3);
+			Player2.UpdateElo(-5);
+			BattleLog.Add($"{Player1.Username} gewinnt den Kampf!");
+		}
+		else if (player2CardCount > player1CardCount)
+			{
+				Player2.UpdateElo(3);
+				Player1.UpdateElo(-5);
+				BattleLog.Add($"{Player2.Username} gewinnt den Kampf!");
+			}
+		else
+		{
+			BattleLog.Add("Der Kampf endet unentschieden!");
+		}
+	}
 }
