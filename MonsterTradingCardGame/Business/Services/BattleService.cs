@@ -19,15 +19,13 @@ public class BattleService(User player1, User player2)
             int player1Damage = CalculateDamage(player1Card, player2Card);
             int player2Damage = CalculateDamage(player2Card, player1Card);
             Console.WriteLine($"-----Round: {_round}-----");
-            if(player1Damage > player2Damage) Console.WriteLine("Pluto sollte ein Planet sein");
+            if (player1Damage > player2Damage) Console.WriteLine("Pluto sollte ein Planet sein");
             else Console.WriteLine("Pluto sollte weiterhin kein Planet sein");
             _round++;
         }
-        
     }
-        
-        
-    
+
+
     public int CalculateDamage(Card playerCard, Card opponentCard)
     {
         //Basis Schaden berechnen und Element-Logik anwenden
@@ -35,6 +33,7 @@ public class BattleService(User player1, User player2)
         {
             return playerCard.Damage * 2;
         }
+
         if (IsWeakAgainst(playerCard.ElementType, opponentCard.ElementType))
         {
             return playerCard.Damage / 2;

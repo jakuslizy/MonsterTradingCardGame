@@ -166,3 +166,5 @@ FakesAssemblies/
 
 # macOS
 .DS_Store
+
+.fake
