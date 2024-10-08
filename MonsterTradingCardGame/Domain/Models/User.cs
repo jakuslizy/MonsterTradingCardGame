@@ -28,5 +28,10 @@ public class User
     {
         Deck.Add(card);
     }
+    
+    public void UpdateElo(int change)
+    {
+        Elo += change;
+    }
 }
 
