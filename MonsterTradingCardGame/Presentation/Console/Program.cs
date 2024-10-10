@@ -1,6 +1,8 @@
 ﻿using MonsterTradingCardGame.API.Server;
 using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Domain.Models.MonsterCards;
+using MonsterTradingCardGame.Data;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,37 +10,66 @@ namespace MonsterTradingCardGame.Presentation.Console;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                                                                                             
     {
-        // Erstellen Sie zwei Testbenutzer
-        User player1 = new User("TestUser", "password123");
-        User player2 = new User("TestUser2", "password123");
+        // Dienste initialisieren
+        var userService = new UserService();
+        var cardService = new CardService();
+        var battleService = new BattleService();
 
-        var server = new HttpServer(8080, new TcpListener(IPAddress.Any, 8080));
-        server.Start();
+        // Testbenutzer erstellen und zur Datenbank hinzufügen
+        var player1 = new User("TestUser", "password123");
+        var player2 = new User("TestUser2", "password123");
+        InMemoryDatabase.AddUser(player1);
+        InMemoryDatabase.AddUser(player2);
 
-        // Fügen Sie mehr Karten zu den Decks hinzu, um einen längeren Kampf zu simulieren
-        player1.AddCardToDeck(new MonsterCard("Goblin", "Lizy", 30, ElementType.Fire));
-        player1.AddCardToDeck(new SpellCard("Feuerball", 25, ElementType.Fire));
-        player1.AddCardToDeck(new MonsterCard("Ork", "Grunty", 40, ElementType.Normal));
+        // Karten zu den Decks hinzufügen
+        AddCardsToUser(player1, cardService);
+        AddCardsToUser(player2, cardService);
 
-        player2.AddCardToDeck(new SpellCard("Wasserwelle", 20, ElementType.Water));
-        player2.AddCardToDeck(new MonsterCard("Drache", "Flamey", 50, ElementType.Fire));
-        player2.AddCardToDeck(new SpellCard("Eisstrahl", 35, ElementType.Water));
-        for (int i = 0; i < 10; i++) // Fügen Sie 10 Karten für jeden Spieler hinzu
+        const int port = 10001;
+        var router = new Router(userService, cardService, battleService);
+        var requestProcessor = new RequestProcessor(router);
+        var tcpListener = new TcpListener(IPAddress.Any, port);
+        var server = new HttpServer(port, requestProcessor, tcpListener);
+
+        try
         {
-            player1.AddCardToDeck(new MonsterCard($"Monster{i}", $"Name{i}", 30 + i, ElementType.Fire));
-            player2.AddCardToDeck(new SpellCard($"Spell{i}", 25 + i, ElementType.Fire));
+            server.Start();
+            System.Console.WriteLine($"Server is running at: http://localhost:{port}");
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private static void AddCardsToUser(User user, CardService cardService)
+    {
+        var cards = new List<Card>
+        {
+            new Goblin(Guid.NewGuid().ToString(), 30, ElementType.Fire),
+            new SpellCard(Guid.NewGuid().ToString(), "Feuerball", 25, ElementType.Fire),
+            new Ork(Guid.NewGuid().ToString(), 40, ElementType.Normal),
+            new SpellCard(Guid.NewGuid().ToString(), "Wasserwelle", 20, ElementType.Water),
+            new Dragon(Guid.NewGuid().ToString(), "Drache", 50, ElementType.Fire),
+            new SpellCard(Guid.NewGuid().ToString(), "Eisstrahl", 35, ElementType.Water)
+        };
+
+        foreach (var card in cards)
+        {
+            user.AddCardToStack(card);
         }
 
-        // Erstellen Sie einen BattleService mit den Testbenutzern
-        BattleService battle = new BattleService(player1, player2);
+        // 10 zusätzliche Karten hinzu
+        for (int i = 0; i < 10; i++)
+        {
+            user.AddCardToStack(new Dragon(Guid.NewGuid().ToString(), $"Dragon{i}", 30 + i, ElementType.Fire));
+            user.AddCardToStack(new SpellCard(Guid.NewGuid().ToString(), $"Spell{i}", 25 + i, ElementType.Water));
+        }
 
-        // Führen Sie den Kampf aus und speichern Sie das Ergebnis
-        string battleResult = battle.ExecuteBattle();
-
-        // Geben Sie das Ergebnis aus
-        System.Console.WriteLine("Kampfergebnis:");
-        System.Console.WriteLine(battleResult);
+        // Deck des Benutzers (ersten 4 Karten)
+        var deckCards = user.GetStack().Take(4).Select(c => c.Id).ToList();
+        cardService.ConfigureDeck(user, deckCards);
     }
 }

@@ -1,0 +1,37 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "Business Layer" #LightGreen {
+    class UserService {
+        +RegisterUser(user: User)
+        +LoginUser(username: string, password: string) : string
+    }
+
+    class CardService {
+        +CreatePackage(cards: List<Card>)
+        +AcquirePackage(user: User) : List<Card>
+        +GetUserCards(user: User) : IReadOnlyList<Card>
+        +ConfigureDeck(user: User, cardIds: List<string>)
+    }
+
+    class BattleService {
+        -BattleLogic _battleLogic
+        +ExecuteBattle(player1: User, player2: User) : string
+    }
+
+    class BattleLogic {
+        +DetermineRoundWinner(card1: Card, card2: Card) : int
+        +CalculateDamage(attackerCard: Card, defenderCard: Card) : int
+        -IsEffectiveAgainst(attacker: ElementType, defender: ElementType) : bool
+        -IsWeakAgainst(attacker: ElementType, defender: ElementType) : bool
+    }
+}
+
+BattleService *-- BattleLogic
+
+note "Connection to API Layer (1)" as N1
+note "Connection to Data Layer (2)" as N2
+note "Connection to Domain Models (3)" as N3
+@enduml
