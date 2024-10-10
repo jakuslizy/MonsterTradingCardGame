@@ -2,7 +2,7 @@ namespace MonsterTradingCardGame.Domain.Models;
 
 public class Package
 {
-    private List<Card> Cards { get; } = []; //= new List<Card>()
+    private List<Card> Cards { get; } = new List<Card>();
     public const int PackagePrice = 5;
     private const int CardsPerPackage = 5;
 
