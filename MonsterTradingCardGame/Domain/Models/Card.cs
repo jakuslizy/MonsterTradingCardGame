@@ -7,18 +7,12 @@ public enum ElementType
     Water
 }
 
-public abstract class Card
+public abstract class Card(string id, string name, int damage, ElementType elementType)
 {
-    public string Name { get; }
-    public int Damage { get; }
-    public ElementType ElementType { get; }
-
-    protected Card(string name, int damage, ElementType elementType)
-    {
-        Name = name;
-        Damage = damage;
-        ElementType = elementType;
-    }
+    public string Id { get; } = id;
+    public string Name { get; } = name;
+    public int Damage { get; } = damage;
+    public ElementType ElementType { get; } = elementType;
 
     public override string ToString()
     {
