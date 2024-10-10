@@ -1,81 +1,69 @@
-using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Business.Logic;
+using MonsterTradingCardGame.Domain.Models;
+using System.Text;
 
 namespace MonsterTradingCardGame.Business.Services;
 
 public class BattleService
 {
-    private User Player1 { get; }
-    private User Player2 { get; }
-    private const int MaxRounds = 100;
-    private List<string> BattleLog { get; } = new List<string>();
-    private BattleLogic _battleLogic;
+    private readonly BattleLogic _battleLogic;
 
-    public BattleService(User player1, User player2)
+    public BattleService()
     {
-        Player1 = player1;
-        Player2 = player2;
         _battleLogic = new BattleLogic();
     }
 
-    public string ExecuteBattle()
+    public string ExecuteBattle(User player1, User player2)
     {
-        var player1Deck = new List<Card>(Player1.Deck);
-        var player2Deck = new List<Card>(Player2.Deck);
-        var random = new Random();
+        var log = new StringBuilder();
+        var rounds = 0;
+        var player1Deck = new List<Card>(player1.Deck);
+        var player2Deck = new List<Card>(player2.Deck);
 
-        for (int round = 1; round <= MaxRounds; round++)
+        while (rounds < 100 && player1Deck.Count > 0 && player2Deck.Count > 0)
         {
-            if (!player1Deck.Any() || !player2Deck.Any())
-                break;
+            rounds++;
+            var card1 = player1Deck[new Random().Next(player1Deck.Count)];
+            var card2 = player2Deck[new Random().Next(player2Deck.Count)];
 
-            var card1 = player1Deck[random.Next(player1Deck.Count)];
-            var card2 = player2Deck[random.Next(player2Deck.Count)];
-
-            BattleLog.Add($"Runde {round}: {Player1.Username}'s {card1.Name} gegen {Player2.Username}'s {card2.Name}");
+            log.AppendLine($"Round {rounds}: {player1.Username}'s {card1} vs {player2.Username}'s {card2}");
 
             var winner = _battleLogic.DetermineRoundWinner(card1, card2);
-
-            if (winner == 1)
+            switch (winner)
             {
-                player2Deck.Remove(card2);
-                player1Deck.Add(card2);
-                BattleLog.Add($"{Player1.Username} gewinnt die Runde!");
-            }
-            else if (winner == 2)
-            {
-                player1Deck.Remove(card1);
-                player2Deck.Add(card1);
-                BattleLog.Add($"{Player2.Username} gewinnt die Runde!");
-            }
-            else
-            {
-                BattleLog.Add("Unentschieden in dieser Runde!");
+                case 1:
+                    log.AppendLine($"{player1.Username} wins the round");
+                    player2Deck.Remove(card2);
+                    player1Deck.Add(card2);
+                    break;
+                case 2:
+                    log.AppendLine($"{player2.Username} wins the round");
+                    player1Deck.Remove(card1);
+                    player2Deck.Add(card1);
+                    break;
+                default:
+                    log.AppendLine("It's a draw");
+                    break;
             }
         }
 
-        UpdatePlayerStats(player1Deck.Count, player2Deck.Count);
-        return string.Join("\n", BattleLog);
-    }
-
-
-    private void UpdatePlayerStats(int player1CardCount, int player2CardCount)
-    {
-        if (player1CardCount > player2CardCount)
+        if (player1Deck.Count > player2Deck.Count)
         {
-            Player1.UpdateElo(3);
-            Player2.UpdateElo(-5);
-            BattleLog.Add($"{Player1.Username} gewinnt den Kampf!");
+            log.AppendLine($"{player1.Username} wins the battle!");
+            player1.UpdateElo(3);
+            player2.UpdateElo(-5);
         }
-        else if (player2CardCount > player1CardCount)
+        else if (player2Deck.Count > player1Deck.Count)
         {
-            Player2.UpdateElo(3);
-            Player1.UpdateElo(-5);
-            BattleLog.Add($"{Player2.Username} gewinnt den Kampf!");
+            log.AppendLine($"{player2.Username} wins the battle!");
+            player2.UpdateElo(3);
+            player1.UpdateElo(-5);
         }
         else
         {
-            BattleLog.Add("Der Kampf endet unentschieden!");
+            log.AppendLine("The battle ends in a draw!");
         }
+
+        return log.ToString();
     }
 }
