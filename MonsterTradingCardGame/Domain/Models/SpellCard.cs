@@ -1,10 +1,5 @@
 namespace MonsterTradingCardGame.Domain.Models
 {
-    public class SpellCard : Card
-    {
-        public SpellCard(string name, int damage, ElementType elementType)
-            : base(name, damage, elementType)
-        {
-        }
-    }
+    public class SpellCard(string id, string name, int damage, ElementType elementType)
+        : Card(id, name, damage, elementType);
 }
