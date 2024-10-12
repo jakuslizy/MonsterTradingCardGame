@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:10001
+
+### Ein einfacher GET-Request
+GET {{baseUrl}}/ HTTP/1.1
+
+### GET-Request für Karten
+GET {{baseUrl}}/cards HTTP/1.1
+Authorization: Bearer kienboec-mtcgToken
+
+### GET-Request für nicht vorhandene Route
+GET {{baseUrl}}/nichtvorhanden HTTP/1.1
+
+### POST-Request für Benutzerregistrierung
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "Pluto",
+  "Password": "Plutowsky"
+}
+
+### POST-Request für Login
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "Pluto",
+  "Password": "Plutowsky"
+}
+
+### POST-Request für ungültige Benutzerregistrierung (zu kurzer Benutzername)
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "ab",
+  "Password": "password123"
+}
+
+### POST-Request für ungültige Benutzerregistrierung (zu kurzes Passwort)
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "testuser",
+  "Password": "12345"
+}
+
+### POST-Request für doppelte Benutzerregistrierung
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "Pluto",
+  "Password": "Plutowsky"
+}
+
+### POST-Request für ungültigen Login
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
+
+{
+  "Username": "Pluto",
+  "Password": "falschesPasswort"
+}
+
+### POST-Request mit leerem Body für Registrierung
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+### POST-Request mit leerem Body für Login
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
