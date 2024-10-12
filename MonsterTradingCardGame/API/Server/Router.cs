@@ -6,10 +6,12 @@ namespace MonsterTradingCardGame.API.Server
     public class Router
     {
         private readonly UserHandler _userHandler;
+        private readonly UserService _userService;
 
         public Router(UserService userService, CardService cardService, BattleService battleService)
         {
             _userHandler = new UserHandler(userService);
+            _userService = userService;
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -32,8 +34,26 @@ namespace MonsterTradingCardGame.API.Server
                     { Body = body, Path = "/sessions", Method = "POST" }),
                 ("GET", "/") => new Response(200,
                     "<html><body><h1>Willkommen beim Monster Trading Card Game</h1></body></html>", "text/html"),
-                _ => new Response(404, "Not Found", "text/plain")
+                _ => HandleProtectedRoute(method, path, headers, body)
             };
+        }
+
+        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers, string body)
+        {
+            if (!headers.TryGetValue("Authorization", out var token))
+            {
+                return new Response(401, "Unauthorized: No token provided", "application/json");
+            }
+
+            if (!_userService.ValidateToken(token))
+            {
+                return new Response(401, "Unauthorized: Invalid token", "application/json");
+            }
+
+            var username = _userService.GetUsernameFromToken(token);
+
+            
+            return new Response(404, "Not Found", "text/plain");
         }
     }
 }

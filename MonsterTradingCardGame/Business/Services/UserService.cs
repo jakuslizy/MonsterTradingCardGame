@@ -45,4 +45,14 @@ public class UserService
     {
         return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
     }
+
+    public bool ValidateToken(string token)
+    {
+        return InMemoryDatabase.GetUsernameFromToken(token) != null;
+    }
+
+    public string GetUsernameFromToken(string token)
+    {
+        return InMemoryDatabase.GetUsernameFromToken(token) ?? throw new UnauthorizedAccessException("Ungültiges Token");
+    }
 }
