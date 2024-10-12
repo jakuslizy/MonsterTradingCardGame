@@ -2,17 +2,21 @@ namespace MonsterTradingCardGame.Domain.Models;
 
 public class User
 {
+    public string Id { get; set; }
     public string Username { get; private set; }
-    public string Password { get; private set; }
+    public string PasswordHash { get; private set; }
+    public DateTime CreatedAt { get; set; }
     private List<Card> _stack;
     public List<Card> Deck { get; set; } = new List<Card>(4);
     public int Coins { get; private set; }
     public int Elo { get; private set; }
 
-    public User(string username, string password)
+    public User(string username, string passwordHash)
     {
+        Id = Guid.NewGuid().ToString();
         Username = username;
-        Password = password;
+        PasswordHash = passwordHash;
+        CreatedAt = DateTime.UtcNow;
         _stack = new List<Card>();
         Deck = new List<Card>(4);
         Coins = 20;
@@ -46,6 +50,7 @@ public class User
         {
             throw new InvalidOperationException("Card is not in the deck");
         }
+
         _stack.Add(card);
     }
 

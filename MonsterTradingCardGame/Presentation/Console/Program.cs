@@ -10,7 +10,7 @@ namespace MonsterTradingCardGame.Presentation.Console;
 
 public class Program
 {
-    public static void Main(string[] args)                                                                                                             
+    public static void Main(string[] args)
     {
         // Dienste initialisieren
         var userService = new UserService();

@@ -13,30 +13,70 @@ public class UserHandler(UserService userService)
             return new Response(400, "Invalid request: Empty body", "application/json");
         }
 
-        var userData = JsonSerializer.Deserialize<User>(request.Body);
-        if (userData != null)
+        try
         {
-            userService.RegisterUser(userData);
-            return new Response(201, "User successfully created", "application/json");
-        }
+            var registrationData = JsonSerializer.Deserialize<LoginData>(request.Body);
+            if (registrationData == null)
+            {
+                return new Response(400, "Invalid registration data", "application/json");
+            }
 
-        return new Response(400, "Invalid user data", "application/json");
+            if (string.IsNullOrEmpty(request.Body))
+            {
+                return new Response(400, "Invalid request: Empty body", "application/json");
+            }
+
+            if (string.IsNullOrWhiteSpace(registrationData.Username) || registrationData.Username.Length < 3)
+            {
+                return new Response(400, "Username must be at least 3 characters long", "application/json");
+            }
+
+            if (string.IsNullOrWhiteSpace(registrationData.Password) || registrationData.Password.Length < 6)
+            {
+                return new Response(400, "Password must be at least 6 characters long", "application/json");
+            }
+
+            var newUser = userService.RegisterUser(registrationData.Username, registrationData.Password);
+            return new Response(201,
+                JsonSerializer.Serialize(new { Message = "User successfully created", UserId = newUser.Id }),
+                "application/json");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new Response(409, JsonSerializer.Serialize(new { ex.Message }), "application/json");
+        }
+        catch (Exception)
+        {
+            return new Response(500, "An error occurred while processing your request", "application/json");
+        }
     }
 
     public Response LoginUser(Request request)
     {
+        //Console.WriteLine($"Received login request with body: {request.Body}");
         if (string.IsNullOrEmpty(request.Body))
         {
-            return new Response(400, "Bad request: No data in request body", "text/plain");
+            return new Response(400, "Invalid request: Empty body", "application/json");
         }
 
-        var loginData = JsonSerializer.Deserialize<LoginData>(request.Body);
-        if (loginData == null)
+        try
         {
-            return new Response(400, "Invalid login credentials", "text/plain");
-        }
+            var loginData = JsonSerializer.Deserialize<LoginData>(request.Body);
+            if (loginData == null)
+            {
+                return new Response(400, "Invalid login data", "application/json");
+            }
 
-        var token = userService.LoginUser(loginData.Username, loginData.Password);
-        return new Response(200, JsonSerializer.Serialize(new { Token = token }), "application/json");
+            var token = userService.LoginUser(loginData.Username, loginData.Password);
+            return new Response(200, JsonSerializer.Serialize(new { Token = token }), "application/json");
+        }
+        catch (JsonException)
+        {
+            return new Response(400, "Invalid JSON format", "application/json");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new Response(401, JsonSerializer.Serialize(new { ex.Message }), "application/json");
+        }
     }
 }

@@ -5,20 +5,28 @@ namespace MonsterTradingCardGame.Business.Services;
 
 public class UserService
 {
-    public void RegisterUser(User user)
+    public User RegisterUser(string username, string password)
     {
-        if (InMemoryDatabase.GetUser(user.Username) != null)
+        if (InMemoryDatabase.GetUser(username) != null)
         {
             throw new InvalidOperationException("Username already exists");
         }
 
-        InMemoryDatabase.AddUser(user);
+        string hashedPassword = HashPassword(password);
+        var newUser = new User(username, hashedPassword)
+        {
+            Id = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        InMemoryDatabase.AddUser(newUser);
+        return newUser;
     }
 
     public string LoginUser(string username, string password)
     {
         var user = InMemoryDatabase.GetUser(username);
-        if (user == null || user.Password != password)
+        if (user == null || !VerifyPassword(password, user.PasswordHash))
         {
             throw new InvalidOperationException("Invalid username or password");
         }
@@ -26,5 +34,15 @@ public class UserService
         var token = Guid.NewGuid().ToString();
         InMemoryDatabase.AddToken(token, username);
         return token;
+    }
+
+    private string HashPassword(string password)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password);
+    }
+
+    private bool VerifyPassword(string password, string hashedPassword)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
     }
 }
