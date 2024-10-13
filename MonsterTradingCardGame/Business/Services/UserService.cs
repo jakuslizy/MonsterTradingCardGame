@@ -53,6 +53,7 @@ public class UserService
 
     public string GetUsernameFromToken(string token)
     {
-        return InMemoryDatabase.GetUsernameFromToken(token) ?? throw new UnauthorizedAccessException("Ungültiges Token");
+        return InMemoryDatabase.GetUsernameFromToken(token) ??
+               throw new UnauthorizedAccessException("Invalid token");
     }
 }

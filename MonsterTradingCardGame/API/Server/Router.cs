@@ -38,7 +38,8 @@ namespace MonsterTradingCardGame.API.Server
             };
         }
 
-        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers, string body)
+        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers,
+            string body)
         {
             if (!headers.TryGetValue("Authorization", out var token))
             {
@@ -51,8 +52,6 @@ namespace MonsterTradingCardGame.API.Server
             }
 
             var username = _userService.GetUsernameFromToken(token);
-
-            
             return new Response(404, "Not Found", "text/plain");
         }
     }

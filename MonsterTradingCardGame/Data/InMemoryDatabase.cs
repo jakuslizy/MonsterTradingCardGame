@@ -15,7 +15,7 @@ public static class InMemoryDatabase
 
     public static User? GetUser(string username)
     {
-        return _users.TryGetValue(username, out var user) ? user : null;
+        return _users.GetValueOrDefault(username);
     }
 
     public static void AddPackage(Package package)
@@ -42,6 +42,6 @@ public static class InMemoryDatabase
 
     public static string? GetUsernameFromToken(string token)
     {
-        return _tokens.TryGetValue(token, out var username) ? username : null;
+        return _tokens.GetValueOrDefault(token);
     }
 }
