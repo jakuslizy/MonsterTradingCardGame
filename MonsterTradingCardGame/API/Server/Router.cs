@@ -41,17 +41,19 @@ namespace MonsterTradingCardGame.API.Server
         private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers,
             string body)
         {
-            if (!headers.TryGetValue("Authorization", out var token))
+            if (!headers.TryGetValue("Authorization", out var authHeader) || !authHeader.StartsWith("Bearer "))
             {
-                return new Response(401, "Unauthorized: No token provided", "application/json");
+                return new Response(401, "Unauthorized: No valid token provided", "application/json");
             }
+
+            var token = authHeader.Substring("Bearer ".Length);
 
             if (!_userService.ValidateToken(token))
             {
-                return new Response(401, "Unauthorized: Invalid token", "application/json");
+                return new Response(401, "Unauthorized: Invalid or expired token", "application/json");
             }
 
-            var username = _userService.GetUsernameFromToken(token);
+            var user = _userService.GetUserFromToken(token);
             return new Response(404, "Not Found", "text/plain");
         }
     }

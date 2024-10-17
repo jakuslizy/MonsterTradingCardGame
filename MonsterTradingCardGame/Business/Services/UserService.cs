@@ -3,7 +3,7 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class UserService(UserRepository userRepository)
+public class UserService(UserRepository userRepository, SessionRepository sessionRepository)
 {
     public User RegisterUser(string username, string password)
     {
@@ -29,6 +29,13 @@ public class UserService(UserRepository userRepository)
         }
 
         var token = Guid.NewGuid().ToString();
+        var session = new Session(
+            token: token,
+            userId: user.Id,
+            createdAt: DateTime.UtcNow,
+            expiresAt: DateTime.UtcNow.AddHours(1) // Session läuft nach 1 Stunde ab
+        );
+        sessionRepository.CreateSession(session);
 
         return token;
     }
@@ -45,12 +52,22 @@ public class UserService(UserRepository userRepository)
 
     public bool ValidateToken(string token)
     {
-        return InMemoryDatabase.GetUsernameFromToken(token) != null;
+        var session = sessionRepository.GetSessionByToken(token);
+        return session != null && session.ExpiresAt > DateTime.UtcNow;
     }
 
-    public string GetUsernameFromToken(string token)
+    public User GetUserFromToken(string token)
     {
-        return InMemoryDatabase.GetUsernameFromToken(token) ??
-               throw new UnauthorizedAccessException("Invalid token");
+        var session = sessionRepository.GetSessionByToken(token);
+        if (session == null || session.ExpiresAt <= DateTime.UtcNow)
+        {
+            throw new UnauthorizedAccessException("Invalid or expired token");
+        }
+        var user = userRepository.GetUserById(session.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+        return user;
     }
 }

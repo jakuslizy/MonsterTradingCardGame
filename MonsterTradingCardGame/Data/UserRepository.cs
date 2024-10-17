@@ -40,5 +40,24 @@ public class UserRepository
         return null;
     }
 
+    public User? GetUserById(int id)
+    {
+        using var command = _dal.CreateCommand("SELECT * FROM users WHERE id = @id");
+        DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, id);
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            return new User(
+                id: reader.GetInt32(reader.GetOrdinal("id")),
+                username: reader.GetString(reader.GetOrdinal("username")),
+                passwordHash: reader.GetString(reader.GetOrdinal("password_hash")),
+                createdAt: reader.GetDateTime(reader.GetOrdinal("created_at")),
+                coins: reader.GetInt32(reader.GetOrdinal("coins")),
+                elo: reader.GetInt32(reader.GetOrdinal("elo"))
+            );
+        }
+        return null;
+    }
+
     // Todo: weitere Methoden wie UpdateUser, DeleteUser usw.
 }
