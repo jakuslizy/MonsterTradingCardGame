@@ -33,6 +33,7 @@ public class SessionRepository
                 expiresAt: reader.GetDateTime(reader.GetOrdinal("expires_at"))
             );
         }
+
         return null;
     }
 

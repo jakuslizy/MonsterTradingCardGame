@@ -7,7 +7,7 @@ public class UserService(UserRepository userRepository, SessionRepository sessio
 {
     public User RegisterUser(string username, string password)
     {
-        if (userRepository.GetUser(username) != null)
+        if (userRepository.GetUserByUsername(username) != null)
         {
             throw new InvalidOperationException("Username already exists");
         }
@@ -22,7 +22,7 @@ public class UserService(UserRepository userRepository, SessionRepository sessio
 
     public string LoginUser(string username, string password)
     {
-        var user = userRepository.GetUser(username);
+        var user = userRepository.GetUserByUsername(username);
         if (user == null || !VerifyPassword(password, user.PasswordHash))
         {
             throw new InvalidOperationException("Invalid username or password");
@@ -63,11 +63,13 @@ public class UserService(UserRepository userRepository, SessionRepository sessio
         {
             throw new UnauthorizedAccessException("Invalid or expired token");
         }
+
         var user = userRepository.GetUserById(session.UserId);
         if (user == null)
         {
             throw new InvalidOperationException("User not found");
         }
+
         return user;
     }
 }

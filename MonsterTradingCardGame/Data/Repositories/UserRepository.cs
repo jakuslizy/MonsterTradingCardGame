@@ -21,7 +21,7 @@ public class UserRepository
         var id = (int)(command.ExecuteScalar() ?? 0);
     }
 
-    public User? GetUser(string username)
+    public User? GetUserByUsername(string username)
     {
         using var command = _dal.CreateCommand("SELECT * FROM users WHERE username = @username");
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, username);
@@ -37,6 +37,7 @@ public class UserRepository
                 elo: reader.GetInt32(reader.GetOrdinal("elo"))
             );
         }
+
         return null;
     }
 
@@ -56,6 +57,7 @@ public class UserRepository
                 elo: reader.GetInt32(reader.GetOrdinal("elo"))
             );
         }
+
         return null;
     }
 
