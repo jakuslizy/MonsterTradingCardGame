@@ -3,36 +3,33 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class UserService
+public class UserService(UserRepository userRepository)
 {
     public User RegisterUser(string username, string password)
     {
-        if (InMemoryDatabase.GetUser(username) != null)
+        if (userRepository.GetUser(username) != null)
         {
             throw new InvalidOperationException("Username already exists");
         }
 
+        Console.WriteLine($"UserService - Original password: {password}");
         string hashedPassword = HashPassword(password);
-        var newUser = new User(username, hashedPassword)
-        {
-            Id = Guid.NewGuid().ToString(),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        InMemoryDatabase.AddUser(newUser);
+        Console.WriteLine($"UserService - Hashed password: {hashedPassword}");
+        var newUser = new User(username, hashedPassword);
+        userRepository.AddUser(newUser);
         return newUser;
     }
 
     public string LoginUser(string username, string password)
     {
-        var user = InMemoryDatabase.GetUser(username);
+        var user = userRepository.GetUser(username);
         if (user == null || !VerifyPassword(password, user.PasswordHash))
         {
             throw new InvalidOperationException("Invalid username or password");
         }
 
         var token = Guid.NewGuid().ToString();
-        InMemoryDatabase.AddToken(token, username);
+
         return token;
     }
 

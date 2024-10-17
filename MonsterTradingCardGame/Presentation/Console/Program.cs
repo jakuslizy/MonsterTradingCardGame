@@ -1,10 +1,8 @@
-﻿using MonsterTradingCardGame.API.Server;
-using MonsterTradingCardGame.Business.Services;
-using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Domain.Models.MonsterCards;
+﻿using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Data;
-using System.Net;
-using System.Net.Sockets;
+using MonsterTradingCardGame.Domain.Models;
+using Npgsql;
+using System;
 
 namespace MonsterTradingCardGame.Presentation.Console;
 
@@ -12,64 +10,67 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // Dienste initialisieren
-        var userService = new UserService();
-        var cardService = new CardService();
-        var battleService = new BattleService();
-
-        // Testbenutzer erstellen und zur Datenbank hinzufügen
-        var player1 = new User("TestUser", "password123");
-        var player2 = new User("TestUser2", "password123");
-        InMemoryDatabase.AddUser(player1);
-        InMemoryDatabase.AddUser(player2);
-
-        // Karten zu den Decks hinzufügen
-        AddCardsToUser(player1, cardService);
-        AddCardsToUser(player2, cardService);
-
-        const int port = 10001;
-        var router = new Router(userService, cardService, battleService);
-        var requestProcessor = new RequestProcessor(router);
-        var tcpListener = new TcpListener(IPAddress.Any, port);
-        var server = new HttpServer(port, requestProcessor, tcpListener);
-
         try
         {
-            server.Start();
-            System.Console.WriteLine($"Server is running at: http://localhost:{port}");
+            // Datenbankverbindung testen
+            TestDatabaseConnection();
+
+            // Benutzer hinzufügen und überprüfen
+            AddAndVerifyUser();
+
+            System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
+            System.Console.ReadKey();
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"An error occurred: {ex.Message}");
+            System.Console.WriteLine($"Ein Fehler ist aufgetreten: {ex.Message}");
         }
     }
 
-    private static void AddCardsToUser(User user, CardService cardService)
+    private static void TestDatabaseConnection()
     {
-        var cards = new List<Card>
+        try
         {
-            new Goblin(Guid.NewGuid().ToString(), 30, ElementType.Fire),
-            new SpellCard(Guid.NewGuid().ToString(), "Feuerball", 25, ElementType.Fire),
-            new Ork(Guid.NewGuid().ToString(), 40, ElementType.Normal),
-            new SpellCard(Guid.NewGuid().ToString(), "Wasserwelle", 20, ElementType.Water),
-            new Dragon(Guid.NewGuid().ToString(), "Drache", 50, ElementType.Fire),
-            new SpellCard(Guid.NewGuid().ToString(), "Eisstrahl", 35, ElementType.Water)
-        };
-
-        foreach (var card in cards)
-        {
-            user.AddCardToStack(card);
+            var dataLayer = DataLayer.Instance;
+            
+            using (var command = dataLayer.CreateCommand("SELECT 1"))
+            {
+                command.ExecuteScalar();
+            }
+            
+            System.Console.WriteLine("Datenbankverbindung erfolgreich!");
         }
-
-        // 10 zusätzliche Karten hinzu
-        for (int i = 0; i < 10; i++)
+        catch (Exception ex)
         {
-            user.AddCardToStack(new Dragon(Guid.NewGuid().ToString(), $"Dragon{i}", 30 + i, ElementType.Fire));
-            user.AddCardToStack(new SpellCard(Guid.NewGuid().ToString(), $"Spell{i}", 25 + i, ElementType.Water));
+            System.Console.WriteLine($"Datenbankverbindungsfehler: {ex.Message}");
+            throw;
         }
+    }
 
-        // Deck des Benutzers (ersten 4 Karten)
-        var deckCards = user.GetStack().Take(4).Select(c => c.Id).ToList();
-        cardService.ConfigureDeck(user, deckCards);
+    private static void AddAndVerifyUser()
+    {
+        var userRepository = new UserRepository();
+        var userService = new UserService(userRepository);
+
+        var testUsername = "Pluto";
+        var testPassword = "testpassword";
+
+        System.Console.WriteLine($"Versuche, Benutzer {testUsername} zu registrieren...");
+        var newUser = userService.RegisterUser(testUsername, testPassword);
+
+        System.Console.WriteLine($"Benutzer {newUser.Username} wurde registriert. Überprüfe Speicherung...");
+
+        var retrievedUser = userRepository.GetUser(testUsername);
+        if (retrievedUser != null)
+        {
+            System.Console.WriteLine($"Benutzer {retrievedUser.Username} wurde erfolgreich in der Datenbank gespeichert.");
+            System.Console.WriteLine($"Benutzer-ID: {retrievedUser.Id}");
+            System.Console.WriteLine($"Erstellungsdatum: {retrievedUser.CreatedAt}");
+            System.Console.WriteLine($"Gespeicherter Passwort-Hash: {retrievedUser.PasswordHash}");
+        }
+        else
+        {
+            System.Console.WriteLine("Fehler: Benutzer konnte nicht in der Datenbank gefunden werden.");
+        }
     }
 }

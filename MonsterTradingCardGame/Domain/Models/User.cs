@@ -2,18 +2,18 @@ namespace MonsterTradingCardGame.Domain.Models;
 
 public class User
 {
-    public string Id { get; set; }
+    public int Id { get; set; }
     public string Username { get; private set; }
     public string PasswordHash { get; private set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; private set; }
     private List<Card> _stack;
-    public List<Card> Deck { get; set; } = new List<Card>(4);
+    public List<Card> Deck { get; private set; }
     public int Coins { get; private set; }
     public int Elo { get; private set; }
 
-    public User(string username, string passwordHash)
+        public User(string username, string passwordHash)
     {
-        Id = Guid.NewGuid().ToString();
+        Id = 0; // Die Datenbank wird die ID automatisch generieren
         Username = username;
         PasswordHash = passwordHash;
         CreatedAt = DateTime.UtcNow;
@@ -21,6 +21,18 @@ public class User
         Deck = new List<Card>(4);
         Coins = 20;
         Elo = 100;
+    }
+
+    public User(int id, string username, string passwordHash, DateTime createdAt, int coins, int elo)
+    {
+        Id = id;
+        Username = username;
+        PasswordHash = passwordHash;
+        CreatedAt = createdAt;
+        _stack = new List<Card>();
+        Deck = new List<Card>(4);
+        Coins = coins;
+        Elo = elo;
     }
 
     public void AddCardToStack(Card card)
@@ -41,7 +53,7 @@ public class User
         }
 
         Deck.Add(card);
-        _stack.Remove(card);
+        _stack.Remove(card); 
     }
 
     public void RemoveCardFromDeck(Card card)
@@ -54,9 +66,9 @@ public class User
         _stack.Add(card);
     }
 
-    public void UpdateElo(int change)
+    public void UpdateElo(int newAmount)
     {
-        Elo += change;
+        Elo = newAmount;
     }
 
     public IReadOnlyList<Card> GetStack()
