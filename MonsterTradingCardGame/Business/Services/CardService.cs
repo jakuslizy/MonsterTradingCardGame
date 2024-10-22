@@ -13,30 +13,30 @@ public class CardService
             package.AddCard(card);
         }
 
-        InMemoryDatabase.AddPackage(package);
+        //InMemoryDatabase.AddPackage(package);
     }
 
-    public List<Card> AcquirePackage(User user)
-    {
-        if (user.Coins < Package.PackagePrice)
-        {
-            throw new InvalidOperationException("Not enough coins");
-        }
-
-        var package = InMemoryDatabase.GetPackage();
-        if (package == null)
-        {
-            throw new InvalidOperationException("No packages available");
-        }
-
-        user.UpdateCoins(user.Coins - Package.PackagePrice);
-        foreach (var card in package.GetCards())
-        {
-            user.AddCardToStack(card);
-        }
-
-        return package.GetCards().ToList();
-    }
+    // public List<Card> AcquirePackage(User user)
+    // {
+    //     if (user.Coins < Package.PackagePrice)
+    //     {
+    //         throw new InvalidOperationException("Not enough coins");
+    //     }
+    //
+    //     var package = InMemoryDatabase.GetPackage();
+    //     if (package == null)
+    //     {
+    //         throw new InvalidOperationException("No packages available");
+    //     }
+    //
+    //     user.UpdateCoins(user.Coins - Package.PackagePrice);
+    //     foreach (var card in package.GetCards())
+    //     {
+    //         user.AddCardToStack(card);
+    //     }
+    //
+    //     return package.GetCards().ToList();
+    // }
 
     public IReadOnlyList<Card> GetUserCards(User user)
     {

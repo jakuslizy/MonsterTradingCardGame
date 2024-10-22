@@ -1,4 +1,4 @@
-using MonsterTradingCardGame.Data;
+using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Business.Services;

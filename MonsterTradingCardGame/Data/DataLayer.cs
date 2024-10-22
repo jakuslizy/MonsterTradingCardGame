@@ -8,13 +8,20 @@ public class DataLayer : IDisposable
     #region Singleton-Pattern
 
     private static DataLayer? _instance;
-
-    public static DataLayer Instance => _instance ??=
-        new DataLayer("Host=localhost;Database=mydb;Username=postgres;Password=postgres;Persist Security Info=True");
-
+    public static DataLayer Instance 
+    {
+        get 
+        {
+            if (_instance == null)
+            {
+                _instance = new DataLayer("Host=localhost;Database=mydb;Username=postgres;Password=postgres;Persist Security Info=True");
+            }
+            return _instance;
+        }
+    }
     #endregion
 
-    private IDbConnection _connection;
+    private readonly IDbConnection _connection;
 
     private DataLayer(string connectionString)
     {
@@ -24,11 +31,8 @@ public class DataLayer : IDisposable
 
     public void Dispose()
     {
-        if (_connection != null)
-        {
-            _connection.Close();
-            _connection.Dispose();
-        }
+        _connection.Close();
+        _connection.Dispose();
     }
 
     public IDbCommand CreateCommand(string commandText)

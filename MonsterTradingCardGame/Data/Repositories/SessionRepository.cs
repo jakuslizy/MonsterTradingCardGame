@@ -1,7 +1,7 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
 
-namespace MonsterTradingCardGame.Data;
+namespace MonsterTradingCardGame.Data.Repositories;
 
 public class SessionRepository
 {
