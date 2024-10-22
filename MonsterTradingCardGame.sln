@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterTradingCardGame", "MonsterTradingCardGame\MonsterTradingCardGame.csproj", "{C7FF5E63-4A2F-4667-A931-ADA07E8186E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterTradingCardGameTests", "MonsterTradingCardGameTests\MonsterTradingCardGameTests.csproj", "{BE488084-3715-4355-A3B2-FB9421CCFE75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{C7FF5E63-4A2F-4667-A931-ADA07E8186E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7FF5E63-4A2F-4667-A931-ADA07E8186E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7FF5E63-4A2F-4667-A931-ADA07E8186E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE488084-3715-4355-A3B2-FB9421CCFE75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE488084-3715-4355-A3B2-FB9421CCFE75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE488084-3715-4355-A3B2-FB9421CCFE75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE488084-3715-4355-A3B2-FB9421CCFE75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
