@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class BattleService
+public class BattleService : IBattleService
 {
     private readonly BattleLogic _battleLogic;
 
