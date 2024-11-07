@@ -6,9 +6,9 @@ namespace MonsterTradingCardGame.API.Server
     public class Router
     {
         private readonly UserHandler _userHandler;
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public Router(UserService userService, CardService cardService, BattleService battleService)
+        public Router(IUserService userService, ICardService cardService, IBattleService battleService)
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;

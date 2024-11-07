@@ -1,27 +1,28 @@
 using MonsterTradingCardGame.API.Server;
 using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Data.Repositories;
+using NSubstitute;
 
 namespace MonsterTradingCardGameTests;
 
 public class Tests
 {
     private Router _router;
-    private UserService _userService;
-    private CardService _cardService;
-    private BattleService _battleService;
-    private UserRepository _userRepository;
+    private IUserService _userService;
+    private ICardService _cardService;
+    private IBattleService _battleService;
+    private IUserRepository _userRepository;
     private SessionRepository _sessionRepository;
 
     [SetUp]
     public void Setup()
     {
-        _userRepository = new UserRepository();
-        _sessionRepository = new SessionRepository();
+        _userRepository = Substitute.For<IUserRepository>();
+        _sessionRepository = Substitute.For<SessionRepository>();
         
-        _userService = new UserService(_userRepository, _sessionRepository);
-        _cardService = new CardService();
-        _battleService = new BattleService();
+        _userService = Substitute.For<IUserService>(); // Substitute verwenden
+        _cardService = Substitute.For<ICardService>();
+        _battleService = Substitute.For<IBattleService>();
         
         _router = new Router(_userService, _cardService, _battleService);
     }

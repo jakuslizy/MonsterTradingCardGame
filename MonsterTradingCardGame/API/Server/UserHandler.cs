@@ -4,7 +4,7 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.API.Server;
 
-public class UserHandler(UserService userService)
+public class UserHandler(IUserService userService)
 {
     public Response RegisterUser(Request request)
     {
