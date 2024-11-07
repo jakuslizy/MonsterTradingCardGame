@@ -26,9 +26,6 @@ bld/
 *.opendb
 *.VC.db
 
-# Rider files
-.idea/
-
 # User-specific files
 *.rsuser
 *.sln.docstates
@@ -47,7 +44,6 @@ artifacts/
 *.obj
 *.iobj
 *.pch
-*.pdb
 *.ipdb
 *.pgc
 *.pgd
@@ -63,7 +59,6 @@ artifacts/
 *.vspscc
 *.vssscc
 .builds
-*.pidb
 *.svclog
 *.scc
 
