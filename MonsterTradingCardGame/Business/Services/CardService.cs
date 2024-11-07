@@ -3,7 +3,7 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class CardService
+public class CardService : ICardService
 {
     public void CreatePackage(List<Card> cards)
     {
