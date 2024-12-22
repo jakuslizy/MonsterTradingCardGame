@@ -1,13 +1,10 @@
 ﻿using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Data;
 using MonsterTradingCardGame.Domain.Models;
-using Npgsql;
-using System;
 using System.Net;
 using System.Net.Sockets;
 using MonsterTradingCardGame.API.Server;
 using MonsterTradingCardGame.Data.Repositories;
-
 
 namespace MonsterTradingCardGame.Presentation.Console;
 
@@ -15,15 +12,19 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // Dienste initialisieren
+        // Repositories initialisieren
         var userRepository = new UserRepository();
         var sessionRepository = new SessionRepository();
+        var packageRepository = new PackageRepository();  // Neu
+
+        // Services initialisieren
         var userService = new UserService(userRepository, sessionRepository);
         var cardService = new CardService();
         var battleService = new BattleService();
+        var packageService = new PackageService(packageRepository, userRepository);  // Neu
 
         const int port = 10001;
-        var router = new Router(userService, cardService, battleService);
+        var router = new Router(userService, cardService, battleService, packageService);  // Geändert
         var requestProcessor = new RequestProcessor(router);
         var tcpListener = new TcpListener(IPAddress.Any, port);
         var server = new HttpServer(port, requestProcessor, tcpListener);
@@ -50,9 +51,6 @@ public class Program
                 // Datenbankverbindung testen
                 TestDatabaseConnection();
 
-                // Benutzer hinzufügen und überprüfen
-               // AddAndVerifyUser();
-
                 System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
                 System.Console.ReadKey();
             }
@@ -63,14 +61,11 @@ public class Program
         }
         finally
         {
-            // Server beenden
-            
+            // Optional: Cleanup-Code hier
         }
     }
 
-    
-
-private static void TestDatabaseConnection()
+    private static void TestDatabaseConnection()
     {
         try
         {
@@ -89,59 +84,4 @@ private static void TestDatabaseConnection()
             throw;
         }
     }
-
-    // private static void AddAndVerifyUser()
-    // {
-    //     var userRepository = new UserRepository();
-    //     var sessionRepository = new SessionRepository();
-    //     var userService = new UserService(userRepository, sessionRepository);
-    //
-    //     var testUsername = "Bubi";
-    //     var testPassword = "testpassword";
-    //
-    //     System.Console.WriteLine($"Versuche, Benutzer {testUsername} zu registrieren...");
-    //     var newUser = userService.RegisterUser(testUsername, testPassword);
-    //
-    //     System.Console.WriteLine($"Benutzer {newUser.Username} wurde registriert. Überprüfe Speicherung...");
-    //
-    //     var retrievedUser = userRepository.GetUser(testUsername);
-    //     if (retrievedUser != null)
-    //     {
-    //         System.Console.WriteLine($"Benutzer {retrievedUser.Username} wurde erfolgreich in der Datenbank gespeichert.");
-    //         System.Console.WriteLine($"Benutzer-ID: {retrievedUser.Id}");
-    //         System.Console.WriteLine($"Erstellungsdatum: {retrievedUser.CreatedAt}");
-    //         System.Console.WriteLine($"Gespeicherter Passwort-Hash: {retrievedUser.PasswordHash}");
-    //
-    //         // Test Login und Token-Validierung
-    //         TestLoginAndTokenValidation(userService, testUsername, testPassword);
-    //     }
-    //     else
-    //     {
-    //         System.Console.WriteLine("Fehler: Benutzer konnte nicht in der Datenbank gefunden werden.");
-    //     }
-    // }
-
-    // private static void TestLoginAndTokenValidation(UserService userService, string username, string password)
-    // {
-    //     try
-    //     {
-    //         System.Console.WriteLine($"Versuche, Benutzer {username} anzumelden...");
-    //         var token = userService.LoginUser(username, password);
-    //         System.Console.WriteLine($"Anmeldung erfolgreich. Token: {token}");
-    //
-    //         System.Console.WriteLine("Überprüfe Token-Validierung...");
-    //         var isValid = userService.ValidateToken(token);
-    //         System.Console.WriteLine($"Token ist gültig: {isValid}");
-    //
-    //         if (isValid)
-    //         {
-    //             var user = userService.GetUserFromToken(token);
-    //             System.Console.WriteLine($"Benutzer aus Token: {user.Username}");
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         System.Console.WriteLine($"Fehler beim Login oder der Token-Validierung: {ex.Message}");
-    //     }
-   // }
 }

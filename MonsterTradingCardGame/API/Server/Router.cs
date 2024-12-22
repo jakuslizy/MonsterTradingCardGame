@@ -7,11 +7,13 @@ namespace MonsterTradingCardGame.API.Server
     {
         private readonly UserHandler _userHandler;
         private readonly IUserService _userService;
+        private readonly IPackageService _packageService;  // Neue Zeile
 
-        public Router(IUserService userService, ICardService cardService, IBattleService battleService)
+        public Router(IUserService userService, ICardService cardService, IBattleService battleService, IPackageService packageService)  // Geändert
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;
+            _packageService = packageService;  // Neue Zeile
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -54,7 +56,35 @@ namespace MonsterTradingCardGame.API.Server
             }
 
             var user = _userService.GetUserFromToken(token);
-            return new Response(404, "Not Found", "text/plain");
+
+            // Hier die neue Package-Route hinzufügen
+            return (method, path) switch
+            {
+                ("POST", "/packages") => HandleCreatePackage(user.Username, body),
+                _ => new Response(404, "Not Found", "text/plain")
+            };
+        }
+
+        // Neue Methode für Package-Handling
+        private Response HandleCreatePackage(string username, string body)
+        {
+            try
+            {
+                _packageService.CreatePackage(body, username);
+                return new Response(201, "Package created successfully", "application/json");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new Response(403, "Forbidden - only admin can create packages", "application/json");
+            }
+            catch (ArgumentException ex)
+            {
+                return new Response(400, ex.Message, "application/json");
+            }
+            catch (Exception)
+            {
+                return new Response(500, "Internal server error", "application/json");
+            }
         }
     }
 }
