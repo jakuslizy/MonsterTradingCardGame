@@ -68,7 +68,7 @@ public class UserHandler(IUserService userService)
             }
 
             var token = userService.LoginUser(loginData.Username, loginData.Password);
-            return new Response(200, JsonSerializer.Serialize(new { Token = token }), "application/json");
+            return new Response(200, token, "text/plain");
         }
         catch (JsonException)
         {
@@ -76,7 +76,7 @@ public class UserHandler(IUserService userService)
         }
         catch (InvalidOperationException ex)
         {
-            return new Response(401, JsonSerializer.Serialize(new { ex.Message }), "application/json");
+            return new Response(401, ex.Message, "text/plain");
         }
     }
 }

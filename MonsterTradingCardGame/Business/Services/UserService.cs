@@ -37,7 +37,8 @@ public class UserService : IUserService
             throw new InvalidOperationException("Invalid username or password");
         }
 
-        var token = Guid.NewGuid().ToString();
+        var token = $"{username}-mtcgToken";
+        
         var session = new Session(
             token: token,
             userId: user.Id,
