@@ -1,5 +1,6 @@
 using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Data.Repositories; 
 
 namespace MonsterTradingCardGame.API.Server
 {
@@ -7,13 +8,27 @@ namespace MonsterTradingCardGame.API.Server
     {
         private readonly UserHandler _userHandler;
         private readonly IUserService _userService;
-        private readonly IPackageService _packageService;  // Neue Zeile
+        private readonly IPackageService _packageService; 
+        private readonly ICardService _cardService;         
+        private readonly IBattleService _battleService;
+        private readonly PackageRepository _packageRepository;  
+        private readonly IUserRepository _userRepository;      
 
-        public Router(IUserService userService, ICardService cardService, IBattleService battleService, IPackageService packageService)  // Geändert
+        public Router(
+            IUserService userService, 
+            ICardService cardService, 
+            IBattleService battleService, 
+            IPackageService packageService,
+            PackageRepository packageRepository,    
+            IUserRepository userRepository)         
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;
-            _packageService = packageService;  // Neue Zeile
+            _packageService = packageService; 
+            _cardService = cardService;           
+            _battleService = battleService;
+            _packageRepository = packageRepository;  
+            _userRepository = userRepository;        
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -28,28 +43,29 @@ namespace MonsterTradingCardGame.API.Server
             var method = parts[0];
             var path = parts[1];
 
-            return (method, path) switch
-            {
-                ("POST", "/users") => _userHandler.RegisterUser(new Request
-                    { Body = body, Path = "/users", Method = "POST" }),
-                ("POST", "/sessions") => _userHandler.LoginUser(new Request
-                    { Body = body, Path = "/sessions", Method = "POST" }),
-                ("GET", "/") => new Response(200,
-                    "<html><body><h1>Willkommen beim Monster Trading Card Game</h1></body></html>", "text/html"),
-                _ => HandleProtectedRoute(method, path, headers, body)
-            };
+            // Nicht-geschützte Routen
+            if (method == "POST" && path == "/users")
+                return _userHandler.RegisterUser(new Request { Body = body, Path = "/users", Method = "POST" });
+    
+            if (method == "POST" && path == "/sessions")
+                return _userHandler.LoginUser(new Request { Body = body, Path = "/sessions", Method = "POST" });
+    
+            if (method == "GET" && path == "/")
+                return new Response(200, "<html><body><h1>Willkommen beim Monster Trading Card Game</h1></body></html>", "text/html");
+
+            // Alle anderen Routen sind geschützt
+            return HandleProtectedRoute(method, path, headers, body);
         }
 
-        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers,
-            string body)
+        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers, string body)
         {
+            // Token-Validierung
             if (!headers.TryGetValue("Authorization", out var authHeader) || !authHeader.StartsWith("Bearer "))
             {
                 return new Response(401, "Unauthorized: No valid token provided", "application/json");
             }
 
             var token = authHeader.Substring("Bearer ".Length);
-
             if (!_userService.ValidateToken(token))
             {
                 return new Response(401, "Unauthorized: Invalid or expired token", "application/json");
@@ -57,10 +73,12 @@ namespace MonsterTradingCardGame.API.Server
 
             var user = _userService.GetUserFromToken(token);
 
-            // Hier die neue Package-Route hinzufügen
+            // Router für geschützte Endpunkte
             return (method, path) switch
             {
+                ("POST", "/transactions/packages") => HandleBuyPackage(user),
                 ("POST", "/packages") => HandleCreatePackage(user.Username, body),
+                ("GET", "/cards") => HandleGetUserCards(user),  
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -84,6 +102,64 @@ namespace MonsterTradingCardGame.API.Server
             catch (Exception)
             {
                 return new Response(500, "Internal server error", "application/json");
+            }
+        }
+        private Response HandleBuyPackage(User user)
+        {
+            try 
+            {
+                if (user.Coins < Package.PackagePrice)
+                {
+                    return new Response(402, "Not enough money", "application/json");
+                }
+
+                var package = _packageRepository.GetPackage(user.Id);
+                if (package == null)
+                {
+                    return new Response(404, "No packages available", "application/json");
+                }
+
+                // Ziehe Coins ab und füge Karten zum Stack hinzu
+                user.UpdateCoins(user.Coins - Package.PackagePrice);
+                foreach (var card in package.GetCards())
+                {
+                    user.AddCardToStack(card);
+                }
+
+                _userRepository.UpdateUserCoins(user.Id, user.Coins);
+
+                return new Response(201, "Package successfully acquired", "application/json");
+            }
+            catch (Exception ex)
+            {
+                return new Response(500, $"Error while acquiring package: {ex.Message}", "application/json");
+            }
+        }
+        private Response HandleGetUserCards(User user)
+        {
+            try 
+            {
+                var cards = _cardService.GetUserCards(user);
+                if (!cards.Any())
+                {
+                    return new Response(200, "[]", "application/json");
+                }
+
+                var cardsList = cards.Select(card => new
+                {
+                    Id = card.Id,
+                    Name = card.Name,
+                    Damage = card.Damage
+                });
+
+                return new Response(200, 
+                    System.Text.Json.JsonSerializer.Serialize(cardsList), 
+                    "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in HandleGetUserCards: {ex}");
+                return new Response(500, $"Error retrieving cards: {ex.Message}", "application/json");
             }
         }
     }

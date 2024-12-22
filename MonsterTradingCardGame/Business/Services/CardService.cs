@@ -1,10 +1,22 @@
 using MonsterTradingCardGame.Data;
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Domain.Models.MonsterCards;
+using MonsterTradingCardGame.Data.Repositories;
 
 namespace MonsterTradingCardGame.Business.Services;
 
 public class CardService : ICardService
 {
+    private readonly IUserRepository _userRepository;  
+
+    public CardService(IUserRepository userRepository)  
+    {
+        _userRepository = userRepository;
+    }
+    public IReadOnlyList<Card> GetUserCards(User user)
+    {
+        return _userRepository.GetUserCards(user.Id); 
+    }
     public void CreatePackage(List<Card> cards)
     {
         var package = new Package();
@@ -38,10 +50,6 @@ public class CardService : ICardService
     //     return package.GetCards().ToList();
     // }
 
-    public IReadOnlyList<Card> GetUserCards(User user)
-    {
-        return user.GetStack();
-    }
 
     public void ConfigureDeck(User user, List<string> cardIds)
     {
@@ -61,5 +69,27 @@ public class CardService : ICardService
 
             user.AddCardToDeck(card);
         }
+    }
+
+    public Card CreateCard(string id, string name, int damage, ElementType elementType)
+    {
+        // Spell-Karten
+        if (name.Contains("Spell"))
+        {
+            return new SpellCard(id, name, damage, elementType);
+        }
+
+        // Monster-Karten
+        return name switch
+        {
+            var n when n.Contains("Dragon") => new Dragon(id, name, damage, elementType),
+            var n when n.Contains("FireElf") => new FireElf(id, name, damage, elementType),
+            var n when n.Contains("Kraken") => new Kraken(id, name, damage, elementType),
+            var n when n.Contains("Knight") => new Knight(id, name, damage, elementType),
+            var n when n.Contains("Wizard") => new Wizzard(id, name, damage, elementType),
+            var n when n.Contains("Ork") => new Ork(id, name, damage, elementType),
+            var n when n.Contains("Goblin") => new Goblin(id, name, damage, elementType),
+            _ => new Dragon(id, name, damage, elementType)
+        };
     }
 }

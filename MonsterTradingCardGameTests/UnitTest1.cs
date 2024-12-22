@@ -13,6 +13,7 @@ public class Tests
     private IBattleService _battleService;
     private IUserRepository _userRepository;
     private SessionRepository _sessionRepository;
+    private IPackageService _packageService;
 
     [SetUp]
     public void Setup()
@@ -23,8 +24,9 @@ public class Tests
         _userService = Substitute.For<IUserService>(); // Substitute verwenden
         _cardService = Substitute.For<ICardService>();
         _battleService = Substitute.For<IBattleService>();
+        _packageService = Substitute.For<IPackageService>();
         
-        _router = new Router(_userService, _cardService, _battleService);
+        _router = new Router(_userService, _cardService, _battleService, _packageService);
     }
 
     [Test]
@@ -55,5 +57,18 @@ public class Tests
     {
         var response = _router.RouteRequest(null, new Dictionary<string, string>(), "");
         Assert.That(response.StatusCode, Is.EqualTo(400));
+    }
+    [Test]
+    public void TestCreatePackageUnauthorized()
+    {
+        var headers = new Dictionary<string, string>
+        {
+            { "Authorization", "Bearer some-invalid-token" }
+        };
+        
+        _userService.ValidateToken(Arg.Any<string>()).Returns(false);
+        
+        var response = _router.RouteRequest("POST /packages HTTP/1.1", headers, "[]");
+        Assert.That(response.StatusCode, Is.EqualTo(401));
     }
 }

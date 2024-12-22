@@ -1,11 +1,18 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Business.Services;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 
 public class UserRepository : IUserRepository
 {
     private readonly DataLayer _dal = DataLayer.Instance;
+    private readonly ICardService _cardService;
+
+    public UserRepository(ICardService cardService)
+    {
+        _cardService = cardService;
+    }
 
     public void AddUser(User user)
     {
@@ -60,6 +67,58 @@ public class UserRepository : IUserRepository
 
         return null;
     }
+    
+public void UpdateUser(User user)
+{
+    using var command = _dal.CreateCommand(@"
+        UPDATE users 
+        SET coins = @coins
+        WHERE id = @id");
+        
+    DataLayer.AddParameterWithValue(command, "@coins", DbType.Int32, user.Coins);
+    DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, user.Id);
+    
+    command.ExecuteNonQuery();
+}
+public void UpdateUserCoins(int userId, int coins)
+{
+    using var command = _dal.CreateCommand(@"
+        UPDATE users 
+        SET coins = @coins
+        WHERE id = @id");
+        
+    DataLayer.AddParameterWithValue(command, "@coins", DbType.Int32, coins);
+    DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, userId);
+    
+    command.ExecuteNonQuery();
+}
+public List<Card> GetUserCards(int userId)
+{
+    var cards = new List<Card>();
+    using var command = _dal.CreateCommand(@"
+            SELECT id, name, damage, element_type 
+            FROM cards 
+            WHERE user_id = @userId");
+        
+    DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+        
+    using var reader = command.ExecuteReader();
+    while (reader.Read())
+    {
+        var id = reader.GetString(reader.GetOrdinal("id"));
+        var name = reader.GetString(reader.GetOrdinal("name"));
+        var damage = reader.GetInt32(reader.GetOrdinal("damage"));
+        var elementType = Enum.Parse<ElementType>(
+            reader.GetString(reader.GetOrdinal("element_type")));
+
+        // Die Factory-Methode vom CardService verwenden statt direkter Instanziierung
+        var card = _cardService.CreateCard(id, name, damage, elementType);
+        cards.Add(card);
+    }
+        
+    return cards;
+}
+
 
     // Todo: weitere Methoden wie UpdateUser, DeleteUser usw.
 }

@@ -1,12 +1,20 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Domain.Models.MonsterCards;
+using MonsterTradingCardGame.Business.Services;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
     public class PackageRepository
     {
         private readonly DataLayer _dal = DataLayer.Instance;
+        private readonly ICardService _cardService;
+
+        public PackageRepository(ICardService cardService)
+        {
+            _cardService = cardService;
+        }
 
         public void CreatePackage(Package package, List<Card> cards)
         {
@@ -50,24 +58,40 @@ namespace MonsterTradingCardGame.Data.Repositories
             }
         }
 
-        public Package? GetPackage()
-        {
-            var package = new Package();
-            var hasCards = false;
+        // In PackageRepository.cs
+public Package? GetPackage(int userId)
+{
+    // Use the existing connection from DataLayer
+    var command = _dal.CreateCommand("");
+    var transaction = command.Connection?.BeginTransaction();
+    
+    try
+    {
+        var package = new Package();
+        var hasCards = false;
 
-            using var command = _dal.CreateCommand(@"
-                WITH first_available_package AS (
-                    SELECT id 
-                    FROM packages 
-                    WHERE user_id IS NULL 
-                    LIMIT 1
+        // Update command to use transaction
+        command.CommandText = @"
+            WITH first_available_package AS (
+                SELECT id 
+                FROM packages 
+                WHERE id IN (
+                    SELECT DISTINCT package_id 
+                    FROM cards 
+                    WHERE user_id IS NULL
                 )
-                SELECT c.id, c.name, c.damage, c.element_type
-                FROM cards c
-                JOIN first_available_package p ON c.package_id = p.id");
-
-            using var reader = command.ExecuteReader();
+                LIMIT 1
+                FOR UPDATE
+            )
+            SELECT c.id, c.name, c.damage, c.element_type
+            FROM cards c
+            JOIN first_available_package p ON c.package_id = p.id
+            WHERE c.user_id IS NULL";
             
+        command.Transaction = transaction;
+        
+        using (var reader = command.ExecuteReader())
+        {
             while (reader.Read())
             {
                 hasCards = true;
@@ -77,33 +101,42 @@ namespace MonsterTradingCardGame.Data.Repositories
                 var elementType = Enum.Parse<ElementType>(
                     reader.GetString(reader.GetOrdinal("element_type")));
 
-                var card = CreateCard(cardId, name, damage, elementType);
+                var card = _cardService.CreateCard(cardId, name, damage, elementType);
                 package.AddCard(card);
             }
-
-            return hasCards ? package : null;
         }
 
-        private Card CreateCard(string id, string name, int damage, ElementType elementType)
+        if (hasCards)
         {
-            // Spell-Karten
-            if (name.Contains("Spell"))
-            {
-                return new SpellCard(id, name, damage, elementType);
-            }
-
-            // Monster-Karten
-            return name switch
-            {
-                var n when n.Contains("Dragon") => new Dragon(id, name, damage, elementType),
-                var n when n.Contains("FireElf") => new FireElf(id, name, damage, elementType),
-                var n when n.Contains("Kraken") => new Kraken(id, name, damage, elementType),
-                var n when n.Contains("Knight") => new Knight(id, name, damage, elementType),
-                var n when n.Contains("Wizard") => new Wizzard(id, name, damage, elementType),
-                var n when n.Contains("Ork") => new Ork(id, name, damage, elementType),
-                var n when n.Contains("Goblin") => new Goblin(id, name, damage, elementType),
-                _ => new Dragon(id, name, damage, elementType)
-            };
+            command.CommandText = @"
+                UPDATE cards 
+                SET user_id = @userId 
+                WHERE id = ANY(@cardIds)";
+                
+            command.Parameters.Clear();
+            DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@cardIds";
+            parameter.Value = package.GetCards().Select(c => c.Id).ToArray();
+            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
+            command.Parameters.Add(parameter);
+            
+            command.ExecuteNonQuery();
         }
+
+        transaction?.Commit();
+        return hasCards ? package : null;
+    }
+    catch (Exception)
+    {
+        transaction?.Rollback();
+        throw;
+    }
+    finally
+    {
+        transaction?.Dispose();
+        command.Dispose();
+    }
+}
     }
 }

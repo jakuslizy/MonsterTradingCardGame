@@ -5,12 +5,22 @@ using System.Text.Json;
 
 namespace MonsterTradingCardGame.Business.Services
 {
-    public class PackageService(PackageRepository packageRepository, UserRepository userRepository)
-        : IPackageService
+    public class PackageService : IPackageService
     {
-        private readonly UserRepository _userRepository = userRepository;
+        private readonly PackageRepository _packageRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ICardService _cardService;
 
-        public void CreatePackage(string cardsJson, string username)
+        public PackageService(PackageRepository packageRepository, 
+                             IUserRepository userRepository,
+                             ICardService cardService)
+        {
+            _packageRepository = packageRepository;
+            _userRepository = userRepository;
+            _cardService = cardService;
+        }
+
+        public void CreatePackage(string cardDtosJson, string username)
         {
             // Verify admin rights
             if (username != "admin")
@@ -19,7 +29,7 @@ namespace MonsterTradingCardGame.Business.Services
             }
 
             // Parse cards from JSON
-            var cardDtos = JsonSerializer.Deserialize<List<CardDto>>(cardsJson) 
+            var cardDtos = JsonSerializer.Deserialize<List<CardDto>>(cardDtosJson) 
                 ?? throw new ArgumentException("Invalid card data");
 
             if (cardDtos.Count != 5)
@@ -32,7 +42,9 @@ namespace MonsterTradingCardGame.Business.Services
             foreach (var dto in cardDtos)
             {
                 var elementType = DetermineElementType(dto.Name);
-                Card card = CreateCard(dto.Id, dto.Name, (int)Math.Round(dto.Damage), elementType);
+                Card card = _cardService.CreateCard(dto.Id, dto.Name, 
+                                                  (int)Math.Round(dto.Damage), 
+                                                  elementType);
                 cards.Add(card);
             }
 
@@ -43,30 +55,7 @@ namespace MonsterTradingCardGame.Business.Services
                 package.AddCard(card);
             }
 
-            packageRepository.CreatePackage(package, cards);
-        }
-
-        private Card CreateCard(string id, string name, int damage, ElementType elementType)
-        {
-            // Spell-Karten
-            if (name.Contains("Spell"))
-            {
-                return new SpellCard(id, name, damage, elementType);
-            }
-
-            // Monster-Karten
-            return name switch
-            {
-                var n when n.Contains("Dragon") => new Dragon(id, name, damage, elementType),
-                var n when n.Contains("FireElf") => new FireElf(id, name, damage, elementType),
-                var n when n.Contains("Kraken") => new Kraken(id, name, damage, elementType),
-                var n when n.Contains("Knight") => new Knight(id, name, damage, elementType),
-                var n when n.Contains("Wizard") => new Wizzard(id, name, damage, elementType),
-                var n when n.Contains("Ork") => new Ork(id, name, damage, elementType),
-                var n when n.Contains("Goblin") => new Goblin(id, name, damage, elementType),
-                // Defaultfall - wenn kein spezifischer Typ erkannt wird, erstellen wir einen Dragon als Fallback
-                _ => new Dragon(id, name, damage, elementType)
-            };
+            _packageRepository.CreatePackage(package, cards);
         }
 
         private ElementType DetermineElementType(string cardName)

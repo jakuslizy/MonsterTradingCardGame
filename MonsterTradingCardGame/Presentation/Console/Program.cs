@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using MonsterTradingCardGame.API.Server;
 using MonsterTradingCardGame.Data.Repositories;
+using System.Reflection;
 
 namespace MonsterTradingCardGame.Presentation.Console;
 
@@ -13,18 +14,31 @@ public class Program
     public static void Main(string[] args)
     {
         // Repositories initialisieren
-        var userRepository = new UserRepository();
+        var userRepository = new UserRepository(null);
         var sessionRepository = new SessionRepository();
-        var packageRepository = new PackageRepository();  // Neu
 
         // Services initialisieren
-        var userService = new UserService(userRepository, sessionRepository);
-        var cardService = new CardService();
+        var cardService = new CardService(userRepository);
         var battleService = new BattleService();
-        var packageService = new PackageService(packageRepository, userRepository);  // Neu
+        var userService = new UserService(userRepository, sessionRepository);
+
+        // PackageRepository mit cardService initialisieren
+        var packageRepository = new PackageRepository(cardService);
+        var packageService = new PackageService(packageRepository, userRepository, cardService);
+
+        // CardService im UserRepository nachträglich setzen
+        typeof(UserRepository).GetField("_cardService", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.SetValue(userRepository, cardService);
 
         const int port = 10001;
-        var router = new Router(userService, cardService, battleService, packageService);  // Geändert
+        var router = new Router(
+            userService, 
+            cardService, 
+            battleService, 
+            packageService,
+            packageRepository,    
+            userRepository       
+        );
         var requestProcessor = new RequestProcessor(router);
         var tcpListener = new TcpListener(IPAddress.Any, port);
         var server = new HttpServer(port, requestProcessor, tcpListener);
