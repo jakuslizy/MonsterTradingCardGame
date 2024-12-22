@@ -5,21 +5,10 @@ using System.Text.Json;
 
 namespace MonsterTradingCardGame.Business.Services
 {
-    public interface IPackageService
+    public class PackageService(PackageRepository packageRepository, UserRepository userRepository)
+        : IPackageService
     {
-        void CreatePackage(string cardsJson, string username);
-    }
-
-    public class PackageService : IPackageService
-    {
-        private readonly PackageRepository _packageRepository;
-        private readonly UserRepository _userRepository;
-
-        public PackageService(PackageRepository packageRepository, UserRepository userRepository)
-        {
-            _packageRepository = packageRepository;
-            _userRepository = userRepository;
-        }
+        private readonly UserRepository _userRepository = userRepository;
 
         public void CreatePackage(string cardsJson, string username)
         {
@@ -54,7 +43,7 @@ namespace MonsterTradingCardGame.Business.Services
                 package.AddCard(card);
             }
 
-            _packageRepository.CreatePackage(package, cards);
+            packageRepository.CreatePackage(package, cards);
         }
 
         private Card CreateCard(string id, string name, int damage, ElementType elementType)
