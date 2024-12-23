@@ -1,6 +1,8 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Business.Services;
+using NpgsqlTypes;
+using Npgsql;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 
@@ -97,7 +99,7 @@ public List<Card> GetUserCards(int userId)
 {
     var cards = new List<Card>();
     using var command = _dal.CreateCommand(
-        @"SELECT c.id, c.name, c.damage, c.element_type 
+        @"SELECT c.id, c.name, c.damage, c.element_type, c.in_deck 
           FROM cards c
           WHERE c.user_id = @userId");
     
@@ -110,19 +112,16 @@ public List<Card> GetUserCards(int userId)
         var name = reader.GetString(reader.GetOrdinal("name"));
         var damage = reader.GetInt32(reader.GetOrdinal("damage"));
         var elementTypeString = reader.GetString(reader.GetOrdinal("element_type"));
+        var inDeck = reader.GetBoolean(reader.GetOrdinal("in_deck"));
         
         ElementType elementType;
         if (Enum.TryParse<ElementType>(elementTypeString, true, out elementType))
         {
             var card = _cardService.CreateCard(id, name, damage, elementType);
+            card.InDeck = inDeck;
             cards.Add(card);
         }
-        else
-        {
-            throw new InvalidOperationException($"Invalid element type: {elementTypeString}");
-        }
     }
-    
     return cards;
 }
 
@@ -144,16 +143,61 @@ public void SaveUserCards(int userId, List<Card> cards)
 
 public void UpdateUserDeck(int userId, List<string> cardIds)
 {
-    using var command = _dal.CreateCommand(@"
-        UPDATE users 
-        SET deck_cards = @deckCards
-        WHERE id = @id");
-        
-    var deckJson = System.Text.Json.JsonSerializer.Serialize(cardIds);
-    DataLayer.AddParameterWithValue(command, "@deckCards", DbType.String, deckJson);
-    DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, userId);
+    // Zuerst alle Karten des Users auf in_deck = false setzen
+    using var resetCommand = _dal.CreateCommand(@"
+        UPDATE cards 
+        SET in_deck = false
+        WHERE user_id = @userId");
+    DataLayer.AddParameterWithValue(resetCommand, "@userId", DbType.Int32, userId);
+    resetCommand.ExecuteNonQuery();
     
-    command.ExecuteNonQuery();
+    if (cardIds.Count > 0)
+    {
+        // Dann die ausgewählten Karten auf in_deck = true setzen
+        using var updateCommand = _dal.CreateCommand(@"
+            UPDATE cards 
+            SET in_deck = true
+            WHERE user_id = @userId AND id = ANY(@cardIds)");
+        
+        updateCommand.Parameters.Clear();
+        DataLayer.AddParameterWithValue(updateCommand, "@userId", DbType.Int32, userId);
+        var parameter = updateCommand.CreateParameter();
+        parameter.ParameterName = "@cardIds";
+        parameter.Value = cardIds.ToArray();
+        ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
+        updateCommand.Parameters.Add(parameter);
+        
+        updateCommand.ExecuteNonQuery();
+    }
+}
+
+public List<Card> GetUserDeck(int userId)
+{
+    var cards = new List<Card>();
+    using var command = _dal.CreateCommand(@"
+        SELECT c.id, c.name, c.damage, c.element_type 
+        FROM cards c
+        WHERE c.user_id = @userId AND c.in_deck = true");
+    
+    DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+    
+    using var reader = command.ExecuteReader();
+    while (reader.Read())
+    {
+        var id = reader.GetString(reader.GetOrdinal("id"));
+        var name = reader.GetString(reader.GetOrdinal("name"));
+        var damage = reader.GetInt32(reader.GetOrdinal("damage"));
+        var elementTypeString = reader.GetString(reader.GetOrdinal("element_type"));
+        
+        ElementType elementType;
+        if (Enum.TryParse<ElementType>(elementTypeString, true, out elementType))
+        {
+            var card = _cardService.CreateCard(id, name, damage, elementType);
+            card.InDeck = true;
+            cards.Add(card);
+        }
+    }
+    return cards;
 }
 
     // Todo: weitere Methoden wie UpdateUser, DeleteUser usw.

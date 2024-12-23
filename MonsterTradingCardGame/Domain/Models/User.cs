@@ -27,58 +27,45 @@ public class User
         PasswordHash = passwordHash;
         CreatedAt = createdAt ?? DateTime.UtcNow;
         _stack = new List<Card>();
-        _deck = new List<Card>(4);
+        _deck = new List<Card>();
         Coins = coins;
         Elo = elo;
     }
+
+public void SetDeck(List<Card> cards)
+{
+    if (cards == null)
+    {
+        throw new ArgumentNullException(nameof(cards));
+    }
+
+    if (cards.Count != 4)
+    {
+        throw new InvalidOperationException("Deck must contain exactly 4 cards");
+    }
+
+    _deck = new List<Card>(cards);
+}
+
+public void ClearDeck()
+{
+    _stack.AddRange(_deck);  
+    _deck.Clear();
+}
 
     public void AddCardToStack(Card card)
     {
         _stack.Add(card);
     }
 
-    public void AddCardToDeck(Card card)
-    {
-        if (_deck.Count >= 4)
-        {
-            throw new InvalidOperationException("Deck is already full");
-        }
-
-        if (!_stack.Contains(card))
-        {
-            throw new InvalidOperationException("Card is not in the user's stack");
-        }
-
-        _deck.Add(card);
-        _stack.Remove(card); 
-    }
-
-    public void RemoveCardFromDeck(Card card)
-    {
-        if (!_deck.Remove(card))
-        {
-            throw new InvalidOperationException("Card is not in the deck");
-        }
-
-        _stack.Add(card);
-    }
-
-    public void UpdateElo(int newAmount)
-    {
-        Elo = newAmount;
-    }
-
-    public void ClearDeck()
-    {
-        _stack.AddRange(_deck);
-        _deck.Clear();
-    }
 
     public void UpdateCoins(int newAmount)
     {
         Coins = newAmount;
     }
 
-    public void SetStack(List<Card> cards) => _stack = cards;
-    public void SetDeck(List<Card> cards) => _deck = cards;
+    public void UpdateElo(int newAmount)
+    {
+        Elo = newAmount;
+    }
 }

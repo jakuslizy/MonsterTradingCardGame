@@ -63,7 +63,7 @@ public Package? GetPackage(int userId)
 {
     // Use the existing connection from DataLayer
     var command = _dal.CreateCommand("");
-    var transaction = command.Connection?.BeginTransaction();
+    using var transaction = command.Connection?.BeginTransaction(IsolationLevel.Serializable);
     
     try
     {
@@ -72,21 +72,23 @@ public Package? GetPackage(int userId)
 
         // Update command to use transaction
         command.CommandText = @"
-            WITH first_available_package AS (
-                SELECT id 
-                FROM packages 
-                WHERE id IN (
-                    SELECT DISTINCT package_id 
-                    FROM cards 
-                    WHERE user_id IS NULL
-                )
-                LIMIT 1
-                FOR UPDATE
-            )
-            SELECT c.id, c.name, c.damage, c.element_type
-            FROM cards c
-            JOIN first_available_package p ON c.package_id = p.id
-            WHERE c.user_id IS NULL";
+    WITH first_available_package AS (
+        SELECT id 
+        FROM packages 
+        WHERE id IN (
+            SELECT DISTINCT package_id 
+            FROM cards 
+            WHERE user_id IS NULL
+        )
+        ORDER BY id  -- Dies stellt sicher, dass wir die Pakete in der richtigen Reihenfolge verarbeiten
+        LIMIT 1
+        FOR UPDATE
+    )
+    SELECT c.id, c.name, c.damage, c.element_type
+    FROM cards c
+    JOIN first_available_package p ON c.package_id = p.id
+    WHERE c.user_id IS NULL
+    ORDER BY c.id";
             
         command.Transaction = transaction;
         

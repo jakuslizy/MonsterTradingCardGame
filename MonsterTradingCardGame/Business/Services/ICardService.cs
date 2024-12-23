@@ -8,4 +8,5 @@ public interface ICardService
     IReadOnlyList<Card> GetUserCards(User user);
     void ConfigureDeck(User user, List<string> cardIds);
     Card CreateCard(string id, string name, int damage, ElementType elementType);
+    IReadOnlyList<Card> GetUserDeck(User user);
 }

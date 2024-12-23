@@ -51,32 +51,40 @@ public class CardService : ICardService
     // }
 
 
-    public void ConfigureDeck(User user, List<string> cardIds)
+public void ConfigureDeck(User user, List<string> cardIds)
+{
+    try 
     {
         if (cardIds.Count != 4)
         {
             throw new InvalidOperationException("Deck must contain exactly 4 cards");
         }
 
+        // Hole alle Karten des Users direkt aus der Datenbank
         var userCards = _userRepository.GetUserCards(user.Id);
+        
+        // Erstelle eine neue Liste für das Deck
         var selectedCards = new List<Card>();
-
-        foreach (var cardId in cardIds)
+        foreach(var cardId in cardIds)
         {
             var card = userCards.FirstOrDefault(c => c.Id == cardId);
             if (card == null)
             {
-                throw new InvalidOperationException($"Card {cardId} not found in user's stack");
+                throw new InvalidOperationException($"Card {cardId} is not in user's stack");
             }
             selectedCards.Add(card);
         }
 
         // Setze das neue Deck
         user.SetDeck(selectedCards);
-        
-        // Speichere Änderungen in der Datenbank
         _userRepository.UpdateUserDeck(user.Id, cardIds);
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in ConfigureDeck: {ex}");
+        throw;
+    }
+}
 
     public Card CreateCard(string id, string name, int damage, ElementType elementType)
     {
@@ -98,5 +106,18 @@ public class CardService : ICardService
             var n when n.Contains("Goblin") => new Goblin(id, name, damage, elementType),
             _ => new Dragon(id, name, damage, elementType)
         };
+    }
+
+    public IReadOnlyList<Card> GetUserDeck(User user)
+    {
+        try
+        {
+            return _userRepository.GetUserDeck(user.Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetUserDeck: {ex}");
+            throw;
+        }
     }
 }

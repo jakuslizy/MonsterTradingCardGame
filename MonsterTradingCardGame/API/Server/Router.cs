@@ -169,8 +169,8 @@ namespace MonsterTradingCardGame.API.Server
         {
             try 
             {
-                var deck = user.Deck;
-                if (!deck.Any())
+                var deck = _cardService.GetUserDeck(user);
+                if (deck == null || !deck.Any())
                 {
                     return new Response(200, "[]", "application/json");
                 }
@@ -186,8 +186,9 @@ namespace MonsterTradingCardGame.API.Server
                     System.Text.Json.JsonSerializer.Serialize(cardsList), 
                     "application/json");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in HandleGetDeck: {ex}");
                 return new Response(500, "Internal server error", "application/json");
             }
         }
@@ -195,6 +196,11 @@ namespace MonsterTradingCardGame.API.Server
         {
             try
             {
+                if (string.IsNullOrEmpty(body))
+                {
+                    return new Response(400, "Request body is empty", "application/json");
+                }
+
                 var cardIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(body);
                 if (cardIds == null)
                 {
@@ -202,14 +208,31 @@ namespace MonsterTradingCardGame.API.Server
                 }
 
                 _cardService.ConfigureDeck(user, cardIds);
-                return new Response(200, "Deck successfully configured", "application/json");
+                
+                // Nach erfolgreicher Konfiguration die aktualisierten Karten zurückgeben
+                var updatedDeck = user.Deck;
+                var deckResponse = updatedDeck.Select(card => new
+                {
+                    Id = card.Id,
+                    Name = card.Name,
+                    Damage = card.Damage
+                }).ToList();
+
+                return new Response(200, 
+                    System.Text.Json.JsonSerializer.Serialize(deckResponse), 
+                    "application/json");
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return new Response(400, "Invalid JSON format", "application/json");
             }
             catch (InvalidOperationException ex)
             {
                 return new Response(400, ex.Message, "application/json");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in HandleConfigureDeck: {ex}");
                 return new Response(500, "Internal server error", "application/json");
             }
         }
