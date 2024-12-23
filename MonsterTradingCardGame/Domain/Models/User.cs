@@ -7,30 +7,27 @@ public class User
     public string PasswordHash { get; private set; }
     public DateTime CreatedAt { get; private set; }
     private List<Card> _stack;
-    public List<Card> Deck { get; private set; }
+    private List<Card> _deck;
     public int Coins { get; private set; }
     public int Elo { get; private set; }
 
-        public User(string username, string passwordHash)
-    {
-        Id = 0; // Die Datenbank wird die ID automatisch generieren
-        Username = username;
-        PasswordHash = passwordHash;
-        CreatedAt = DateTime.UtcNow;
-        _stack = new List<Card>();
-        Deck = new List<Card>(4);
-        Coins = 20;
-        Elo = 100;
-    }
+    public IReadOnlyList<Card> Stack => _stack.AsReadOnly();
+    public IReadOnlyList<Card> Deck => _deck.AsReadOnly();
 
-    public User(int id, string username, string passwordHash, DateTime createdAt, int coins, int elo)
+    public User(
+        string username, 
+        string passwordHash, 
+        int id = 0, 
+        DateTime? createdAt = null, 
+        int coins = 20, 
+        int elo = 100)
     {
         Id = id;
         Username = username;
         PasswordHash = passwordHash;
-        CreatedAt = createdAt;
+        CreatedAt = createdAt ?? DateTime.UtcNow;
         _stack = new List<Card>();
-        Deck = new List<Card>(4);
+        _deck = new List<Card>(4);
         Coins = coins;
         Elo = elo;
     }
@@ -42,7 +39,7 @@ public class User
 
     public void AddCardToDeck(Card card)
     {
-        if (Deck.Count >= 4)
+        if (_deck.Count >= 4)
         {
             throw new InvalidOperationException("Deck is already full");
         }
@@ -52,13 +49,13 @@ public class User
             throw new InvalidOperationException("Card is not in the user's stack");
         }
 
-        Deck.Add(card);
+        _deck.Add(card);
         _stack.Remove(card); 
     }
 
     public void RemoveCardFromDeck(Card card)
     {
-        if (!Deck.Remove(card))
+        if (!_deck.Remove(card))
         {
             throw new InvalidOperationException("Card is not in the deck");
         }
@@ -71,19 +68,17 @@ public class User
         Elo = newAmount;
     }
 
-    public IReadOnlyList<Card> GetStack()
-    {
-        return _stack.AsReadOnly();
-    }
-
     public void ClearDeck()
     {
-        _stack.AddRange(Deck);
-        Deck.Clear();
+        _stack.AddRange(_deck);
+        _deck.Clear();
     }
 
     public void UpdateCoins(int newAmount)
     {
         Coins = newAmount;
     }
+
+    public void SetStack(List<Card> cards) => _stack = cards;
+    public void SetDeck(List<Card> cards) => _deck = cards;
 }
