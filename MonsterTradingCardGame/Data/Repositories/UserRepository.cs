@@ -19,14 +19,17 @@ public class UserRepository : IUserRepository
     public void AddUser(User user)
     {
         using var command = _dal.CreateCommand(@"
-            INSERT INTO users (username, password_hash, coins, elo, created_at)
-            VALUES (@username, @password_hash, @coins, @elo, @created_at)
+            INSERT INTO users (username, password_hash, coins, elo, created_at, display_name, bio, image)
+            VALUES (@username, @password_hash, @coins, @elo, @created_at, @display_name, @bio, @image)
             RETURNING id");
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
         DataLayer.AddParameterWithValue(command, "@password_hash", DbType.String, user.PasswordHash);
         DataLayer.AddParameterWithValue(command, "@coins", DbType.Int32, user.Coins);
         DataLayer.AddParameterWithValue(command, "@elo", DbType.Int32, user.Elo);
         DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, user.CreatedAt);
+        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
+        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
+        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image);
         var id = (int)(command.ExecuteScalar() ?? 0);
         user.Id = id;
     }
@@ -45,7 +48,12 @@ public class UserRepository : IUserRepository
                 createdAt: reader.GetDateTime(reader.GetOrdinal("created_at")),
                 coins: reader.GetInt32(reader.GetOrdinal("coins")),
                 elo: reader.GetInt32(reader.GetOrdinal("elo"))
-            );
+            )
+            {
+                Name = reader.IsDBNull(reader.GetOrdinal("display_name")) ? null : reader.GetString(reader.GetOrdinal("display_name")),
+                Bio = reader.IsDBNull(reader.GetOrdinal("bio")) ? null : reader.GetString(reader.GetOrdinal("bio")),
+                Image = reader.IsDBNull(reader.GetOrdinal("image")) ? null : reader.GetString(reader.GetOrdinal("image"))
+            };
         }
 
         return null;
@@ -198,6 +206,21 @@ public List<Card> GetUserDeck(int userId)
         }
     }
     return cards;
+}
+
+public void UpdateUserData(User user)
+{
+    using var command = _dal.CreateCommand(@"
+        UPDATE users 
+        SET display_name = @display_name, bio = @bio, image = @image
+        WHERE username = @username");
+        
+    DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
+    DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
+    DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image);
+    DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
+    
+    command.ExecuteNonQuery();
 }
 
     // Todo: weitere Methoden wie UpdateUser, DeleteUser usw.

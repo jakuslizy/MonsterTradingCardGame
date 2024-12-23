@@ -10,4 +10,6 @@ public interface IUserService
     bool VerifyPassword(string password, string hashedPassword);
     bool ValidateToken(string token);
     User GetUserFromToken(string token);
+    User GetUserData(string username);
+    void UpdateUserData(string username, string? name, string? bio, string? image);
 }

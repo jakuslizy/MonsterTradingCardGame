@@ -102,6 +102,8 @@ namespace MonsterTradingCardGame.API.Server
                 ("GET", "/cards") => HandleGetUserCards(user),
                 ("GET", "/deck") => HandleGetDeck(user, queryParams.GetValueOrDefault("format")),
                 ("PUT", "/deck") => HandleConfigureDeck(user, body),
+                ("GET", var p) when p.StartsWith("/users/") => HandleGetUserData(user, p[7..]),
+                ("PUT", var p) when p.StartsWith("/users/") => HandleUpdateUserData(user, p[7..], body),
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -262,6 +264,67 @@ namespace MonsterTradingCardGame.API.Server
             {
                 Console.WriteLine($"Error in HandleConfigureDeck: {ex}");
                 return new Response(500, "Internal server error", "application/json");
+            }
+        }
+
+        private Response HandleGetUserData(User requestingUser, string username)
+        {
+            try
+            {
+                if (requestingUser.Username != username)
+                {
+                    return new Response(403, "Access denied", "application/json");
+                }
+
+                var user = _userService.GetUserData(username);
+                var userData = new
+                {
+                    Name = user.Name,
+                    Bio = user.Bio,
+                    Image = user.Image
+                };
+                
+                return new Response(200, 
+                    System.Text.Json.JsonSerializer.Serialize(userData), 
+                    "application/json");
+            }
+            catch (Exception ex)
+            {
+                return new Response(500, $"Error retrieving user data: {ex.Message}", "application/json");
+            }
+        }
+
+        private Response HandleUpdateUserData(User requestingUser, string username, string body)
+        {
+            try
+            {
+                if (requestingUser.Username != username)
+                {
+                    return new Response(403, "Access denied", "application/json");
+                }
+
+                var updateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+                if (updateData == null)
+                {
+                    return new Response(400, "Invalid request body", "application/json");
+                }
+
+                _userService.UpdateUserData(
+                    username,
+                    updateData.GetValueOrDefault("Name"),
+                    updateData.GetValueOrDefault("Bio"),
+                    updateData.GetValueOrDefault("Image")
+                );
+
+                return new Response(200, "User data updated successfully", "application/json");
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return new Response(400, "Invalid JSON format", "application/json");
+            }
+            catch (Exception ex)
+            {
+                return new Response(500, $"Error updating user data: {ex.Message}", "application/json");
             }
         }
     }

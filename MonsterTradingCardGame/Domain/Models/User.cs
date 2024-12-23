@@ -10,6 +10,9 @@ public class User
     private List<Card> _deck;
     public int Coins { get; private set; }
     public int Elo { get; private set; }
+    public string? Name { get; set; }
+    public string? Bio { get; set; }
+    public string? Image { get; set; }
 
     public IReadOnlyList<Card> Stack => _stack.AsReadOnly();
     public IReadOnlyList<Card> Deck => _deck.AsReadOnly();

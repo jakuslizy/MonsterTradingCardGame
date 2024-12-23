@@ -82,4 +82,29 @@ public class UserService : IUserService
 
         return user;
     }
+
+    public User GetUserData(string username)
+    {
+        var user = _userRepository.GetUserByUsername(username);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+        return user;
+    }
+
+    public void UpdateUserData(string username, string? name, string? bio, string? image)
+    {
+        var user = _userRepository.GetUserByUsername(username);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        user.Name = name;
+        user.Bio = bio;
+        user.Image = image;
+
+        _userRepository.UpdateUserData(user);
+    }
 }
