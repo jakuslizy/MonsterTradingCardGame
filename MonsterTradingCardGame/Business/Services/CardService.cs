@@ -58,17 +58,24 @@ public class CardService : ICardService
             throw new InvalidOperationException("Deck must contain exactly 4 cards");
         }
 
-        user.Deck.Clear();
+        var userCards = _userRepository.GetUserCards(user.Id);
+        var selectedCards = new List<Card>();
+
         foreach (var cardId in cardIds)
         {
-            var card = user.GetStack().FirstOrDefault(c => c.Id == cardId);
+            var card = userCards.FirstOrDefault(c => c.Id == cardId);
             if (card == null)
             {
-                throw new InvalidOperationException($"Card with ID {cardId} not found in user's stack");
+                throw new InvalidOperationException($"Card {cardId} not found in user's stack");
             }
-
-            user.AddCardToDeck(card);
+            selectedCards.Add(card);
         }
+
+        // Setze das neue Deck
+        user.SetDeck(selectedCards);
+        
+        // Speichere Änderungen in der Datenbank
+        _userRepository.UpdateUserDeck(user.Id, cardIds);
     }
 
     public Card CreateCard(string id, string name, int damage, ElementType elementType)

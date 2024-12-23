@@ -26,6 +26,7 @@ public class UserRepository : IUserRepository
         DataLayer.AddParameterWithValue(command, "@elo", DbType.Int32, user.Elo);
         DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, user.CreatedAt);
         var id = (int)(command.ExecuteScalar() ?? 0);
+        user.Id = id;
     }
 
     public User? GetUserByUsername(string username)
@@ -95,30 +96,65 @@ public void UpdateUserCoins(int userId, int coins)
 public List<Card> GetUserCards(int userId)
 {
     var cards = new List<Card>();
-    using var command = _dal.CreateCommand(@"
-            SELECT id, name, damage, element_type 
-            FROM cards 
-            WHERE user_id = @userId");
-        
+    using var command = _dal.CreateCommand(
+        @"SELECT c.id, c.name, c.damage, c.element_type 
+          FROM cards c
+          WHERE c.user_id = @userId");
+    
     DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-        
+    
     using var reader = command.ExecuteReader();
     while (reader.Read())
     {
         var id = reader.GetString(reader.GetOrdinal("id"));
         var name = reader.GetString(reader.GetOrdinal("name"));
         var damage = reader.GetInt32(reader.GetOrdinal("damage"));
-        var elementType = Enum.Parse<ElementType>(
-            reader.GetString(reader.GetOrdinal("element_type")));
-
-        // Die Factory-Methode vom CardService verwenden statt direkter Instanziierung
-        var card = _cardService.CreateCard(id, name, damage, elementType);
-        cards.Add(card);
-    }
+        var elementTypeString = reader.GetString(reader.GetOrdinal("element_type"));
         
+        ElementType elementType;
+        if (Enum.TryParse<ElementType>(elementTypeString, true, out elementType))
+        {
+            var card = _cardService.CreateCard(id, name, damage, elementType);
+            cards.Add(card);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Invalid element type: {elementTypeString}");
+        }
+    }
+    
     return cards;
 }
 
+public void SaveUserCards(int userId, List<Card> cards)
+{
+    using var command = _dal.CreateCommand(
+        @"UPDATE cards 
+          SET user_id = @userId 
+          WHERE id = @cardId");
+    
+    foreach (var card in cards)
+    {
+        command.Parameters.Clear();
+        DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+        DataLayer.AddParameterWithValue(command, "@cardId", DbType.String, card.Id);
+        command.ExecuteNonQuery();
+    }
+}
+
+public void UpdateUserDeck(int userId, List<string> cardIds)
+{
+    using var command = _dal.CreateCommand(@"
+        UPDATE users 
+        SET deck_cards = @deckCards
+        WHERE id = @id");
+        
+    var deckJson = System.Text.Json.JsonSerializer.Serialize(cardIds);
+    DataLayer.AddParameterWithValue(command, "@deckCards", DbType.String, deckJson);
+    DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, userId);
+    
+    command.ExecuteNonQuery();
+}
 
     // Todo: weitere Methoden wie UpdateUser, DeleteUser usw.
 }

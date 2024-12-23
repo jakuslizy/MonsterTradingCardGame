@@ -78,7 +78,9 @@ namespace MonsterTradingCardGame.API.Server
             {
                 ("POST", "/transactions/packages") => HandleBuyPackage(user),
                 ("POST", "/packages") => HandleCreatePackage(user.Username, body),
-                ("GET", "/cards") => HandleGetUserCards(user),  
+                ("GET", "/cards") => HandleGetUserCards(user),
+                ("GET", "/deck") => HandleGetDeck(user),
+                ("PUT", "/deck") => HandleConfigureDeck(user, body),
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -127,6 +129,7 @@ namespace MonsterTradingCardGame.API.Server
                 }
 
                 _userRepository.UpdateUserCoins(user.Id, user.Coins);
+                _userRepository.SaveUserCards(user.Id, package.GetCards().ToList());
 
                 return new Response(201, "Package successfully acquired", "application/json");
             }
@@ -147,9 +150,9 @@ namespace MonsterTradingCardGame.API.Server
 
                 var cardsList = cards.Select(card => new
                 {
-                    Id = card.Id,
-                    Name = card.Name,
-                    Damage = card.Damage
+                    card.Id,
+                    card.Name,
+                    card.Damage
                 });
 
                 return new Response(200, 
@@ -160,6 +163,54 @@ namespace MonsterTradingCardGame.API.Server
             {
                 Console.WriteLine($"Error in HandleGetUserCards: {ex}");
                 return new Response(500, $"Error retrieving cards: {ex.Message}", "application/json");
+            }
+        }
+        private Response HandleGetDeck(User user)
+        {
+            try 
+            {
+                var deck = user.Deck;
+                if (!deck.Any())
+                {
+                    return new Response(200, "[]", "application/json");
+                }
+
+                var cardsList = deck.Select(card => new
+                {
+                    Id = card.Id,
+                    Name = card.Name,
+                    Damage = card.Damage
+                }).ToList();
+
+                return new Response(200, 
+                    System.Text.Json.JsonSerializer.Serialize(cardsList), 
+                    "application/json");
+            }
+            catch (Exception)
+            {
+                return new Response(500, "Internal server error", "application/json");
+            }
+        }
+        private Response HandleConfigureDeck(User user, string body)
+        {
+            try
+            {
+                var cardIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(body);
+                if (cardIds == null)
+                {
+                    return new Response(400, "Invalid request body", "application/json");
+                }
+
+                _cardService.ConfigureDeck(user, cardIds);
+                return new Response(200, "Deck successfully configured", "application/json");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new Response(400, ex.Message, "application/json");
+            }
+            catch (Exception)
+            {
+                return new Response(500, "Internal server error", "application/json");
             }
         }
     }
