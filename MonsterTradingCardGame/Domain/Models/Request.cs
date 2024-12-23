@@ -6,4 +6,5 @@ public class Request
     public required string Method { get; init; }
     public required string Path { get; init; }
     public string? Body { get; set; }
+    public Dictionary<string, string> QueryParameters { get; init; } = new();
 }

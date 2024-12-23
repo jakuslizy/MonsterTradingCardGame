@@ -41,11 +41,32 @@ namespace MonsterTradingCardGame.API.Server
                 return new Response(400, "Bad Request", "text/plain");
 
             var method = parts[0];
-            var path = parts[1];
+            var pathAndQuery = parts[1].Split('?');
+            var path = pathAndQuery[0];
+            
+            // Query-Parameter extrahieren
+            var queryParams = new Dictionary<string, string>();
+            if (pathAndQuery.Length > 1)
+            {
+                var queryParts = pathAndQuery[1].Split('&');
+                foreach (var param in queryParts)
+                {
+                    var keyValue = param.Split('=');
+                    if (keyValue.Length == 2)
+                    {
+                        queryParams[keyValue[0]] = keyValue[1];
+                    }
+                }
+            }
 
             // Nicht-geschützte Routen
             if (method == "POST" && path == "/users")
-                return _userHandler.RegisterUser(new Request { Body = body, Path = "/users", Method = "POST" });
+                return _userHandler.RegisterUser(new Request { 
+                    Body = body, 
+                    Path = "/users", 
+                    Method = "POST",
+                    QueryParameters = queryParams 
+                });
     
             if (method == "POST" && path == "/sessions")
                 return _userHandler.LoginUser(new Request { Body = body, Path = "/sessions", Method = "POST" });
@@ -54,10 +75,10 @@ namespace MonsterTradingCardGame.API.Server
                 return new Response(200, "<html><body><h1>Willkommen beim Monster Trading Card Game</h1></body></html>", "text/html");
 
             // Alle anderen Routen sind geschützt
-            return HandleProtectedRoute(method, path, headers, body);
+            return HandleProtectedRoute(method, path, headers, body, queryParams);
         }
 
-        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers, string body)
+        private Response HandleProtectedRoute(string method, string path, Dictionary<string, string> headers, string body, Dictionary<string, string> queryParams)
         {
             // Token-Validierung
             if (!headers.TryGetValue("Authorization", out var authHeader) || !authHeader.StartsWith("Bearer "))
@@ -79,7 +100,7 @@ namespace MonsterTradingCardGame.API.Server
                 ("POST", "/transactions/packages") => HandleBuyPackage(user),
                 ("POST", "/packages") => HandleCreatePackage(user.Username, body),
                 ("GET", "/cards") => HandleGetUserCards(user),
-                ("GET", "/deck") => HandleGetDeck(user),
+                ("GET", "/deck") => HandleGetDeck(user, queryParams.GetValueOrDefault("format")),
                 ("PUT", "/deck") => HandleConfigureDeck(user, body),
                 _ => new Response(404, "Not Found", "text/plain")
             };
@@ -165,9 +186,9 @@ namespace MonsterTradingCardGame.API.Server
                 return new Response(500, $"Error retrieving cards: {ex.Message}", "application/json");
             }
         }
-        private Response HandleGetDeck(User user)
+        private Response HandleGetDeck(User user, string? format = null)
         {
-            try 
+            try
             {
                 var deck = _cardService.GetUserDeck(user);
                 if (deck == null || !deck.Any())
@@ -175,7 +196,14 @@ namespace MonsterTradingCardGame.API.Server
                     return new Response(200, "[]", "application/json");
                 }
 
-                var cardsList = deck.Select(card => new
+                if (format?.ToLower() == "plain")
+                {
+                    var plainText = string.Join("\n", deck.Select(card => 
+                        $"Card: {card.Name} ({card.Id}), Damage: {card.Damage}"));
+                    return new Response(200, plainText, "text/plain");
+                }
+
+                var deckResponse = deck.Select(card => new
                 {
                     Id = card.Id,
                     Name = card.Name,
@@ -183,7 +211,7 @@ namespace MonsterTradingCardGame.API.Server
                 }).ToList();
 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(cardsList), 
+                    System.Text.Json.JsonSerializer.Serialize(deckResponse), 
                     "application/json");
             }
             catch (Exception ex)
