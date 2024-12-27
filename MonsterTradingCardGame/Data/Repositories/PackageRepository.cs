@@ -61,36 +61,35 @@ namespace MonsterTradingCardGame.Data.Repositories
         // In PackageRepository.cs
 public Package? GetPackage(int userId)
 {
-    // Use the existing connection from DataLayer
-    var command = _dal.CreateCommand("");
-    using var transaction = command.Connection?.BeginTransaction(IsolationLevel.Serializable);
+    using var connection = _dal.CreateConnection();
+    using var command = connection.CreateCommand();
+    using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
     
     try
     {
         var package = new Package();
         var hasCards = false;
 
-        // Update command to use transaction
-        command.CommandText = @"
-    WITH first_available_package AS (
-        SELECT id 
-        FROM packages 
-        WHERE id IN (
-            SELECT DISTINCT package_id 
-            FROM cards 
-            WHERE user_id IS NULL
-        )
-        ORDER BY id  -- Dies stellt sicher, dass wir die Pakete in der richtigen Reihenfolge verarbeiten
-        LIMIT 1
-        FOR UPDATE
-    )
-    SELECT c.id, c.name, c.damage, c.element_type
-    FROM cards c
-    JOIN first_available_package p ON c.package_id = p.id
-    WHERE c.user_id IS NULL
-    ORDER BY c.id";
-            
+        command.Connection = connection;
         command.Transaction = transaction;
+        command.CommandText = @"
+            WITH first_available_package AS (
+                SELECT id 
+                FROM packages 
+                WHERE id IN (
+                    SELECT DISTINCT package_id 
+                    FROM cards 
+                    WHERE user_id IS NULL
+                )
+                ORDER BY id
+                LIMIT 1
+                FOR UPDATE
+            )
+            SELECT c.id, c.name, c.damage, c.element_type
+            FROM cards c
+            JOIN first_available_package p ON c.package_id = p.id
+            WHERE c.user_id IS NULL
+            ORDER BY c.id";
         
         using (var reader = command.ExecuteReader())
         {
@@ -124,20 +123,17 @@ public Package? GetPackage(int userId)
             command.Parameters.Add(parameter);
             
             command.ExecuteNonQuery();
+            transaction.Commit();
+            return package;
         }
 
-        transaction?.Commit();
-        return hasCards ? package : null;
+        transaction.Commit();
+        return null;
     }
-    catch (Exception)
+    catch
     {
-        transaction?.Rollback();
+        transaction.Rollback();
         throw;
-    }
-    finally
-    {
-        transaction?.Dispose();
-        command.Dispose();
     }
 }
     }

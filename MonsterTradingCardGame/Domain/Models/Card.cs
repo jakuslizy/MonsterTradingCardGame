@@ -14,6 +14,7 @@ public abstract class Card(string id, string name, int damage, ElementType eleme
     public int Damage { get; } = damage;
     public ElementType ElementType { get; } = elementType;
     public bool InDeck { get; set; } = false;
+    public bool InStack { get; set; } = true;
 
     public override string ToString()
     {

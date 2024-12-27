@@ -15,6 +15,7 @@ namespace MonsterTradingCardGame.API.Server
         private readonly PackageRepository _packageRepository;  
         private readonly IUserRepository _userRepository; 
         private readonly StatsRepository _statsRepository;
+        private readonly BattleQueue _battleQueue;
 
         public Router(
             IUserService userService, 
@@ -23,7 +24,8 @@ namespace MonsterTradingCardGame.API.Server
             IPackageService packageService,
             PackageRepository packageRepository,    
             IUserRepository userRepository,
-            StatsRepository statsRepository)         
+            StatsRepository statsRepository,
+            BattleQueue battleQueue)         
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;
@@ -33,6 +35,7 @@ namespace MonsterTradingCardGame.API.Server
             _packageRepository = packageRepository;  
             _userRepository = userRepository; 
             _statsRepository = statsRepository;
+            _battleQueue = battleQueue;
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -110,7 +113,7 @@ namespace MonsterTradingCardGame.API.Server
                 ("PUT", var p) when p.StartsWith("/users/") => HandleUpdateUserData(user, p[7..], body),
                 ("GET", "/stats") => HandleGetStats(user),              // Stats Route
                 ("GET", "/scoreboard") => HandleScoreboard(),          // Scoreboard Route
-                //("POST", "/battles") => HandleBattle(user), 
+                ("POST", "/battles") => HandleBattle(user),
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -140,7 +143,9 @@ namespace MonsterTradingCardGame.API.Server
         {
             try 
             {
-                if (user.Coins < Package.PackagePrice)
+                // Hole aktuelle Coins aus der DB
+                var currentCoins = _userRepository.GetUserCoins(user.Id);
+                if (currentCoins < Package.PackagePrice)
                 {
                     return new Response(402, "Not enough money", "application/json");
                 }
@@ -151,14 +156,8 @@ namespace MonsterTradingCardGame.API.Server
                     return new Response(404, "No packages available", "application/json");
                 }
 
-                // Ziehe Coins ab und füge Karten zum Stack hinzu
-                user.UpdateCoins(user.Coins - Package.PackagePrice);
-                foreach (var card in package.GetCards())
-                {
-                    user.AddCardToStack(card);
-                }
-
-                _userRepository.UpdateUserCoins(user.Id, user.Coins);
+                // Direkt in der DB aktualisieren
+                _userRepository.UpdateUserCoins(user.Id, currentCoins - Package.PackagePrice);
                 _userRepository.SaveUserCards(user.Id, package.GetCards().ToList());
 
                 return new Response(201, "Package successfully acquired", "application/json");
@@ -246,8 +245,8 @@ namespace MonsterTradingCardGame.API.Server
 
                 _cardService.ConfigureDeck(user, cardIds);
                 
-                // Nach erfolgreicher Konfiguration die aktualisierten Karten zurückgeben
-                var updatedDeck = user.Deck;
+                // Nach erfolgreicher Konfiguration die aktualisierten Karten aus der DB holen
+                var updatedDeck = _cardService.GetUserDeck(user);
                 var deckResponse = updatedDeck.Select(card => new
                 {
                     Id = card.Id,
@@ -399,6 +398,42 @@ namespace MonsterTradingCardGame.API.Server
             catch (Exception ex)
             {
                 return new Response(500, ex.Message, "application/json");
+            }
+        }
+
+        private Response HandleBattle(User user)
+        {
+            try
+            {
+                // Prüfen ob ein anderer Spieler wartet
+                var waitingPlayer = _battleQueue.GetWaitingPlayer();
+                
+                if (waitingPlayer == null)
+                {
+                    // Wenn kein Spieler wartet, füge aktuellen Spieler zur Queue hinzu
+                    _battleQueue.AddPlayer(user);
+                    return new Response(202, "Waiting for opponent", "application/json");
+                }
+                
+                if (waitingPlayer.Id == user.Id)
+                {
+                    return new Response(400, "Cannot battle against yourself", "application/json");
+                }
+
+                // Battle durchführen
+                var battleLog = _battleService.ExecuteBattle(waitingPlayer, user);
+                _battleQueue.RemovePlayer(waitingPlayer);
+                
+                return new Response(200, battleLog, "text/plain");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return new Response(400, ex.Message, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in battle: {ex}");
+                return new Response(500, "Internal server error", "application/json");
             }
         }
     }

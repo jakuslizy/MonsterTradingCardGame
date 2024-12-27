@@ -9,20 +9,28 @@ public class SessionRepository
 
     public void CreateSession(Session session)
     {
-        using var command = _dal.CreateCommand(@"
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
             INSERT INTO sessions (token, user_id, created_at, expires_at)
-            VALUES (@token, @userId, @createdAt, @expiresAt)");
+            VALUES (@token, @userId, @createdAt, @expiresAt)";
+            
         DataLayer.AddParameterWithValue(command, "@token", DbType.String, session.Token);
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, session.UserId);
         DataLayer.AddParameterWithValue(command, "@createdAt", DbType.DateTime, session.CreatedAt);
         DataLayer.AddParameterWithValue(command, "@expiresAt", DbType.DateTime, session.ExpiresAt);
+        
         command.ExecuteNonQuery();
     }
 
     public Session? GetSessionByToken(string token)
     {
-        using var command = _dal.CreateCommand("SELECT * FROM sessions WHERE token = @token");
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT * FROM sessions WHERE token = @token";
+        
         DataLayer.AddParameterWithValue(command, "@token", DbType.String, token);
+        
         using var reader = command.ExecuteReader();
         if (reader.Read())
         {
@@ -39,7 +47,10 @@ public class SessionRepository
 
     public void DeleteExpiredSessions()
     {
-        using var command = _dal.CreateCommand("DELETE FROM sessions WHERE expires_at < @now");
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM sessions WHERE expires_at < @now";
+        
         DataLayer.AddParameterWithValue(command, "@now", DbType.DateTime, DateTime.UtcNow);
         command.ExecuteNonQuery();
     }

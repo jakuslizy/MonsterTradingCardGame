@@ -24,31 +24,8 @@ public class CardService : ICardService
         {
             package.AddCard(card);
         }
-
-        //InMemoryDatabase.AddPackage(package);
     }
 
-    // public List<Card> AcquirePackage(User user)
-    // {
-    //     if (user.Coins < Package.PackagePrice)
-    //     {
-    //         throw new InvalidOperationException("Not enough coins");
-    //     }
-    //
-    //     var package = InMemoryDatabase.GetPackage();
-    //     if (package == null)
-    //     {
-    //         throw new InvalidOperationException("No packages available");
-    //     }
-    //
-    //     user.UpdateCoins(user.Coins - Package.PackagePrice);
-    //     foreach (var card in package.GetCards())
-    //     {
-    //         user.AddCardToStack(card);
-    //     }
-    //
-    //     return package.GetCards().ToList();
-    // }
 
 
 public void ConfigureDeck(User user, List<string> cardIds)
@@ -63,20 +40,16 @@ public void ConfigureDeck(User user, List<string> cardIds)
         // Hole alle Karten des Users direkt aus der Datenbank
         var userCards = _userRepository.GetUserCards(user.Id);
         
-        // Erstelle eine neue Liste für das Deck
-        var selectedCards = new List<Card>();
+        // Prüfe, ob alle Karten dem User gehören
         foreach(var cardId in cardIds)
         {
-            var card = userCards.FirstOrDefault(c => c.Id == cardId);
-            if (card == null)
+            if (!userCards.Any(c => c.Id == cardId))
             {
                 throw new InvalidOperationException($"Card {cardId} is not in user's stack");
             }
-            selectedCards.Add(card);
         }
 
-        // Setze das neue Deck
-        user.SetDeck(selectedCards);
+        // Update direkt in der Datenbank
         _userRepository.UpdateUserDeck(user.Id, cardIds);
     }
     catch (Exception ex)
@@ -86,27 +59,6 @@ public void ConfigureDeck(User user, List<string> cardIds)
     }
 }
 
-    public Card CreateCard(string id, string name, int damage, ElementType elementType)
-    {
-        // Spell-Karten
-        if (name.Contains("Spell"))
-        {
-            return new SpellCard(id, name, damage, elementType);
-        }
-
-        // Monster-Karten
-        return name switch
-        {
-            var n when n.Contains("Dragon") => new Dragon(id, name, damage, elementType),
-            var n when n.Contains("FireElf") => new FireElf(id, name, damage, elementType),
-            var n when n.Contains("Kraken") => new Kraken(id, name, damage, elementType),
-            var n when n.Contains("Knight") => new Knight(id, name, damage, elementType),
-            var n when n.Contains("Wizard") => new Wizzard(id, name, damage, elementType),
-            var n when n.Contains("Ork") => new Ork(id, name, damage, elementType),
-            var n when n.Contains("Goblin") => new Goblin(id, name, damage, elementType),
-            _ => new Dragon(id, name, damage, elementType)
-        };
-    }
 
     public IReadOnlyList<Card> GetUserDeck(User user)
     {
@@ -119,5 +71,30 @@ public void ConfigureDeck(User user, List<string> cardIds)
             Console.WriteLine($"Error in GetUserDeck: {ex}");
             throw;
         }
+    }
+
+    public Card? CreateCard(string id, string name, int damage, ElementType elementType)
+    {
+        // Element aus dem Namen extrahieren
+        elementType = ElementType.Normal;
+        if (name.StartsWith("Water")) elementType = ElementType.Water;
+        if (name.StartsWith("Fire")) elementType = ElementType.Fire;
+        
+        // Kartentyp aus dem Namen extrahieren
+        if (name.EndsWith("Spell"))
+        {
+            return new SpellCard(id, name, damage, elementType);
+        }
+        
+        // Monster-Karten
+        if (name.EndsWith("Goblin")) return new Goblin(id, name, damage, elementType);
+        if (name.EndsWith("Dragon")) return new Dragon(id, name, damage, elementType);
+        if (name.EndsWith("Wizard")) return new Wizzard(id, name, damage, elementType);
+        if (name.EndsWith("Ork")) return new Ork(id, name, damage, elementType);
+        if (name.EndsWith("Knight")) return new Knight(id, name, damage, elementType);
+        if (name.EndsWith("Kraken")) return new Kraken(id, name, damage, elementType);
+        if (name.Contains("FireElf")) return new FireElf(id, name, damage, elementType);
+        
+        throw new InvalidOperationException($"Unknown card type: {name}");
     }
 }

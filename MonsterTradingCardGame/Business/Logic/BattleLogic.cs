@@ -43,11 +43,28 @@ public class BattleLogic
     {
         int damage = attackerCard.Damage;
 
+        // Bei reinen Monster-Kämpfen keine Element-Modifikation
+        if (attackerCard is MonsterCard && defenderCard is MonsterCard)
+            return damage;
+
+        // Wenn mindestens eine Spell-Karte beteiligt ist
         if (attackerCard is SpellCard || defenderCard is SpellCard)
         {
-            if (IsEffectiveAgainst(attackerCard.ElementType, defenderCard.ElementType))
+            // Wasser -> Feuer (effektiv)
+            if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Fire)
                 damage *= 2;
-            else if (IsWeakAgainst(attackerCard.ElementType, defenderCard.ElementType))
+            // Feuer -> Normal (effektiv)
+            else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Normal)
+                damage *= 2;
+            // Normal -> Wasser (effektiv)
+            else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Water)
+                damage *= 2;
+            // Umgekehrte Fälle (nicht effektiv)
+            else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Water)
+                damage /= 2;
+            else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Fire)
+                damage /= 2;
+            else if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Normal)
                 damage /= 2;
         }
 

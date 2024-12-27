@@ -1,6 +1,5 @@
 ﻿using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Data;
-using MonsterTradingCardGame.Domain.Models;
 using System.Net;
 using System.Net.Sockets;
 using MonsterTradingCardGame.API.Server;
@@ -13,71 +12,73 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // Repositories initialisieren
-        var userRepository = new UserRepository(null);
-        var sessionRepository = new SessionRepository();
-        var statsRepository = new StatsRepository();
-
-        // Services initialisieren
-        var cardService = new CardService(userRepository);
-        var battleService = new BattleService(statsRepository);
-        var userService = new UserService(userRepository, sessionRepository, statsRepository);
-
-        // PackageRepository mit cardService initialisieren
-        var packageRepository = new PackageRepository(cardService);
-        var packageService = new PackageService(packageRepository, userRepository, cardService);
-
-        // CardService im UserRepository nachträglich setzen
-        typeof(UserRepository).GetField("_cardService", BindingFlags.NonPublic | BindingFlags.Instance)
-            ?.SetValue(userRepository, cardService);
-
-        const int port = 10001;
-        var router = new Router(
-            userService, 
-            cardService, 
-            battleService, 
-            packageService,
-            packageRepository,    
-            userRepository,
-            statsRepository
-        );
-        var requestProcessor = new RequestProcessor(router);
-        var tcpListener = new TcpListener(IPAddress.Any, port);
-        var server = new HttpServer(port, requestProcessor, tcpListener);
-
         try
         {
+            // Repositories initialisieren
+            
+
+            // Services und Repositories mit korrekter Reihenfolge
+            var cardRepository = new CardRepository(null);
+            var userRepository = new UserRepository(cardRepository); 
+            var cardService = new CardService(userRepository);
+            var statsRepository = new StatsRepository();
+            var sessionRepository = new SessionRepository();
+
+            // CardRepository mit dem cardService aktualisieren
+            typeof(CardRepository)
+                .GetField("_cardService", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(cardRepository, cardService);
+
+            var packageRepository = new PackageRepository(cardService);
+            var battleService = new BattleService(statsRepository, userRepository);
+            var userService = new UserService(userRepository, sessionRepository, statsRepository);
+            var packageService = new PackageService(packageRepository, userRepository, cardService);
+
+            // BattleQueue initialisieren
+            var battleQueue = new BattleQueue();
+
+            // Server-Komponenten initialisieren
+            const int port = 10001;
+            var router = new Router(
+                userService,
+                cardService,
+                battleService,
+                packageService,
+                packageRepository,
+                userRepository,
+                statsRepository,
+                battleQueue
+            );
+
+            var requestProcessor = new RequestProcessor(router);
+            var tcpListener = new TcpListener(IPAddress.Any, port);
+            var server = new HttpServer(port, requestProcessor, tcpListener);
+
             // Server in einem separaten Thread starten
-            Thread serverThread = new Thread(() =>
+            var serverThread = new Thread(() =>
             {
                 try
                 {
                     server.Start();
-                    System.Console.WriteLine($"Server is running at: http://localhost:{port}");
+                    System.Console.WriteLine($"Server läuft unter: http://localhost:{port}");
                 }
                 catch (Exception ex)
                 {
-                    System.Console.WriteLine($"Server konnte nicht gestartet werden: {ex.Message}");
+                    System.Console.WriteLine($"Serverfehler: {ex.Message}");
                 }
             });
             serverThread.Start();
 
-            try
-            {
-                // Datenbankverbindung testen
-                TestDatabaseConnection();
+            // Datenbankverbindung testen
+            TestDatabaseConnection();
 
-                System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
-                System.Console.ReadKey();
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"Ein Fehler ist aufgetreten: {ex.Message}");
-            }
+            System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
+            System.Console.ReadKey();
         }
-        finally
+        catch (Exception ex)
         {
-            // Optional: Cleanup-Code hier
+            System.Console.WriteLine($"Kritischer Fehler: {ex.Message}");
+            System.Console.WriteLine(ex.StackTrace);
         }
     }
 
@@ -86,13 +87,9 @@ public class Program
         try
         {
             var dataLayer = DataLayer.Instance;
-            
-            using (var command = dataLayer.CreateCommand("SELECT 1"))
-            {
-                command.ExecuteScalar();
-            }
-            
-            System.Console.WriteLine("Datenbankverbindung erfolgreich!");
+            using var command = dataLayer.CreateCommand("SELECT 1");
+            command.ExecuteScalar();
+            System.Console.WriteLine("Datenbankverbindung erfolgreich hergestellt!");
         }
         catch (Exception ex)
         {

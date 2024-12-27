@@ -6,15 +6,9 @@ public class User
     public string Username { get; private set; }
     public string PasswordHash { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    private List<Card> _stack;
-    private List<Card> _deck;
-    public int Coins { get; private set; }
     public string? Name { get; set; }
     public string? Bio { get; set; }
     public string? Image { get; set; }
-
-    public IReadOnlyList<Card> Stack => _stack.AsReadOnly();
-    public IReadOnlyList<Card> Deck => _deck.AsReadOnly();
 
     public User(
         string username, 
@@ -27,40 +21,5 @@ public class User
         Username = username;
         PasswordHash = passwordHash;
         CreatedAt = createdAt ?? DateTime.UtcNow;
-        _stack = new List<Card>();
-        _deck = new List<Card>();
-        Coins = coins;
-    }
-
-public void SetDeck(List<Card> cards)
-{
-    if (cards == null)
-    {
-        throw new ArgumentNullException(nameof(cards));
-    }
-
-    if (cards.Count != 4)
-    {
-        throw new InvalidOperationException("Deck must contain exactly 4 cards");
-    }
-
-    _deck = new List<Card>(cards);
-}
-
-public void ClearDeck()
-{
-    _stack.AddRange(_deck);  
-    _deck.Clear();
-}
-
-    public void AddCardToStack(Card card)
-    {
-        _stack.Add(card);
-    }
-
-
-    public void UpdateCoins(int newAmount)
-    {
-        Coins = newAmount;
     }
 }

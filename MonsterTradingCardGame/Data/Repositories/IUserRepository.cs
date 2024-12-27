@@ -14,4 +14,5 @@ public interface IUserRepository
     void SaveUserCards(int userId, List<Card> cards);
     void UpdateUserDeck(int userId, List<string> cardIds);
     List<Card> GetUserDeck(int userId);
+    int GetUserCoins(int userId);
 }

@@ -1,0 +1,171 @@
+using System.Data;
+using System.Data.Common;
+using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.Business.Services;
+using MonsterTradingCardGame.Domain.Models.MonsterCards;
+
+namespace MonsterTradingCardGame.Data.Repositories
+{
+    public class CardRepository : ICardRepository
+    {
+        private readonly DataLayer _dal;
+        private readonly ICardService _cardService;
+
+        public CardRepository(ICardService? cardService)
+        {
+            _dal = DataLayer.Instance;
+            _cardService = cardService;
+        }
+
+        public void AddCard(Card card, int userId)
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO cards (id, name, damage, element_type, user_id, in_deck)
+                VALUES (@id, @name, @damage, @element_type, @userId, @inDeck)";
+                
+            DataLayer.AddParameterWithValue(command, "@id", DbType.String, card.Id);
+            DataLayer.AddParameterWithValue(command, "@name", DbType.String, card.Name);
+            DataLayer.AddParameterWithValue(command, "@damage", DbType.Int32, card.Damage);
+            DataLayer.AddParameterWithValue(command, "@element_type", DbType.String, card.ElementType.ToString());
+            DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+            DataLayer.AddParameterWithValue(command, "@inDeck", DbType.Boolean, card.InDeck);
+                
+            command.ExecuteNonQuery();
+        }
+
+        public void UpdateCardDeckStatus(string cardId, bool inDeck)
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE cards 
+                SET in_deck = @inDeck
+                WHERE id = @cardId";
+                
+            DataLayer.AddParameterWithValue(command, "@cardId", DbType.String, cardId);
+            DataLayer.AddParameterWithValue(command, "@inDeck", DbType.Boolean, inDeck);
+                
+            command.ExecuteNonQuery();
+        }
+
+        public void TransferCard(string cardId, int fromUserId, int toUserId)
+        {
+            using var connection = _dal.CreateConnection();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText = @"
+                    UPDATE cards 
+                    SET user_id = @toUserId,
+                        in_deck = false
+                    WHERE id = @cardId 
+                    AND user_id = @fromUserId";
+
+                DataLayer.AddParameterWithValue(command, "@cardId", DbType.String, cardId);
+                DataLayer.AddParameterWithValue(command, "@fromUserId", DbType.Int32, fromUserId);
+                DataLayer.AddParameterWithValue(command, "@toUserId", DbType.Int32, toUserId);
+
+                var rowsAffected = command.ExecuteNonQuery();
+                if (rowsAffected == 0)
+                {
+                    throw new InvalidOperationException($"Karte {cardId} konnte nicht übertragen werden");
+                }
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public void UpdateCard(Card card)
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE cards 
+                SET name = @name, damage = @damage, element_type = @element_type
+                WHERE id = @id";
+                
+            DataLayer.AddParameterWithValue(command, "@id", DbType.String, card.Id);
+            DataLayer.AddParameterWithValue(command, "@name", DbType.String, card.Name);
+            DataLayer.AddParameterWithValue(command, "@damage", DbType.Int32, card.Damage);
+            DataLayer.AddParameterWithValue(command, "@element_type", DbType.String, card.ElementType.ToString());
+            
+            command.ExecuteNonQuery();
+        }
+
+        public Card? GetCardById(string id)
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM cards WHERE id = @id";
+            DataLayer.AddParameterWithValue(command, "@id", DbType.String, id);
+            
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return CreateCardFromReader(reader);
+            }
+            return null;
+        }
+
+        public List<Card> GetCardsByUserId(int userId)
+        {
+            var cards = new List<Card>();
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM cards WHERE user_id = @userId";
+            DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+            
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var card = CreateCardFromReader(reader);
+                if (card != null) cards.Add(card);
+            }
+            return cards;
+        }
+
+        private Card? CreateCardFromReader(IDataReader reader)
+        {
+            var name = reader["name"].ToString() ?? "";
+            var id = reader["id"].ToString() ?? "";
+            var damage = Convert.ToInt32(reader["damage"]);
+            var elementType = Enum.Parse<ElementType>(reader["element_type"].ToString() ?? "Normal");
+            
+            return CreateCard(id, name, damage, elementType);
+        }
+
+        public Card? CreateCard(string id, string name, int damage, ElementType elementType)
+        {
+            // Element aus dem Namen extrahieren
+            elementType = ElementType.Normal;
+            if (name.StartsWith("Water")) elementType = ElementType.Water;
+            if (name.StartsWith("Fire")) elementType = ElementType.Fire;
+            
+            // Kartentyp aus dem Namen extrahieren
+            if (name.EndsWith("Spell"))
+            {
+                return new SpellCard(id, name, damage, elementType);
+            }
+            
+            // Monster-Karten
+            if (name.EndsWith("Goblin")) return new Goblin(id, name, damage, elementType);
+            if (name.EndsWith("Dragon")) return new Dragon(id, name, damage, elementType);
+            if (name.EndsWith("Wizard")) return new Wizzard(id, name, damage, elementType);
+            if (name.EndsWith("Ork")) return new Ork(id, name, damage, elementType);
+            if (name.EndsWith("Knight")) return new Knight(id, name, damage, elementType);
+            if (name.EndsWith("Kraken")) return new Kraken(id, name, damage, elementType);
+            if (name.Contains("FireElf")) return new FireElf(id, name, damage, elementType);
+            
+            throw new InvalidOperationException($"Unknown card type: {name}");
+        }
+    }
+}

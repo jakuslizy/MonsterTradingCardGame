@@ -9,9 +9,11 @@ public class StatsRepository
 
     public void CreateStats(Stats stats)
     {
-        using var command = _dal.CreateCommand(@"
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
             INSERT INTO stats (user_id, games_played, games_won, games_lost, elo)
-            VALUES (@userId, @gamesPlayed, @gamesWon, @gamesLost, @elo)");
+            VALUES (@userId, @gamesPlayed, @gamesWon, @gamesLost, @elo)";
         
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, stats.UserId);
         DataLayer.AddParameterWithValue(command, "@gamesPlayed", DbType.Int32, stats.GamesPlayed);
@@ -24,7 +26,9 @@ public class StatsRepository
 
     public Stats? GetStatsByUserId(int userId)
     {
-        using var command = _dal.CreateCommand("SELECT * FROM stats WHERE user_id = @userId");
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT * FROM stats WHERE user_id = @userId";
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
         
         using var reader = command.ExecuteReader();
@@ -47,14 +51,16 @@ public class StatsRepository
 
     public void UpdateStats(Stats stats)
     {
-        using var command = _dal.CreateCommand(@"
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
             UPDATE stats 
             SET games_played = @gamesPlayed, 
                 games_won = @gamesWon, 
                 games_lost = @gamesLost, 
                 elo = @elo,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = @userId");
+            WHERE user_id = @userId";
         
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, stats.UserId);
         DataLayer.AddParameterWithValue(command, "@gamesPlayed", DbType.Int32, stats.GamesPlayed);
@@ -64,10 +70,14 @@ public class StatsRepository
         
         command.ExecuteNonQuery();
     }
+
     public List<Stats> GetAllStats()
     {
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT * FROM stats";
+        
         var stats = new List<Stats>();
-        using var command = _dal.CreateCommand("SELECT * FROM stats");
         using var reader = command.ExecuteReader();
     
         while (reader.Read())
