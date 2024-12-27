@@ -59,9 +59,14 @@ namespace MonsterTradingCardGame.Business.Services
 
         private class CardDto
         {
+            public CardDto(float damage)
+            {
+                Damage = damage;
+            }
+
             public string Id { get; set; } = "";
-            public string Name { get; set; } = "";
-            public float Damage { get; set; }
+            public string Name { get; } = "";
+            public float Damage { get; }
         }
     }
 }

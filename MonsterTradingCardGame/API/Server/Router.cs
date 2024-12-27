@@ -117,7 +117,7 @@ namespace MonsterTradingCardGame.API.Server
                 ("GET", "/stats") => HandleGetStats(user),              // Stats Route
                 ("GET", "/scoreboard") => HandleScoreboard(),          // Scoreboard Route
                 ("POST", "/battles") => HandleBattle(user),
-                ("GET", "/tradings") => HandleGetTradings(user),
+                ("GET", "/tradings") => HandleGetTradings(),
                 ("POST", "/tradings") => HandleCreateTrading(user, body),
                 ("POST", var p) when p.StartsWith("/tradings/") => HandleExecuteTrading(user, p[10..], body),
                 ("DELETE", var p) when p.StartsWith("/tradings/") => HandleDeleteTrading(user, p[10..]),
@@ -444,7 +444,7 @@ namespace MonsterTradingCardGame.API.Server
             }
         }
 
-        private Response HandleGetTradings(User user)
+        private Response HandleGetTradings()
         {
             try
             {

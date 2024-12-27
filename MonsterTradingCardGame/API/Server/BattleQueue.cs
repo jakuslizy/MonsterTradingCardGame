@@ -4,12 +4,12 @@ namespace MonsterTradingCardGame.API.Server;
 
 public class BattleQueue
 {
-    private static readonly object _lock = new object();
+    private static readonly object Lock = new object();
     private User? _waitingPlayer;
 
     public User? GetWaitingPlayer()
     {
-        lock (_lock)
+        lock (Lock)
         {
             return _waitingPlayer;
         }
@@ -17,7 +17,7 @@ public class BattleQueue
 
     public void AddPlayer(User player)
     {
-        lock (_lock)
+        lock (Lock)
         {
             _waitingPlayer = player;
         }
@@ -25,7 +25,7 @@ public class BattleQueue
 
     public void RemovePlayer(User player)
     {
-        lock (_lock)
+        lock (Lock)
         {
             if (_waitingPlayer?.Id == player.Id)
             {

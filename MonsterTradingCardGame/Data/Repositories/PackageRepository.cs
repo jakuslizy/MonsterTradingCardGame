@@ -103,7 +103,10 @@ public Package? GetPackage(int userId)
                     reader.GetString(reader.GetOrdinal("element_type")));
 
                 var card = _cardService.CreateCard(cardId, name, damage, elementType);
-                package.AddCard(card);
+                if (card != null)
+                {
+                    package.AddCard(card);
+                }
             }
         }
 

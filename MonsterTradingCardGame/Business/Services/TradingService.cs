@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
+
+namespace MonsterTradingCardGame.Business.Services;
 
 public interface ITradingService
 {
@@ -115,4 +115,4 @@ public class TradingService : ITradingService
     }
 
     // Weitere Methoden implementieren...
-} 
+}

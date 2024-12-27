@@ -27,9 +27,9 @@ public class UserRepository : IUserRepository
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
         DataLayer.AddParameterWithValue(command, "@password_hash", DbType.String, user.PasswordHash);
         DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, user.CreatedAt);
-        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
-        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
-        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image);
+        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
         
         var id = (int)(command.ExecuteScalar() ?? 0);
         user.Id = id;
@@ -93,9 +93,9 @@ public class UserRepository : IUserRepository
                 image = @image
             WHERE id = @id";
         
-        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
-        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
-        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image);
+        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, user.Id);
         
         command.ExecuteNonQuery();
@@ -165,7 +165,7 @@ public class UserRepository : IUserRepository
             var parameter = updateCommand.CreateParameter();
             parameter.ParameterName = "@cardIds";
             parameter.Value = cardIds.ToArray();
-            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
+            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array;
             updateCommand.Parameters.Add(parameter);
             
             updateCommand.ExecuteNonQuery();
@@ -212,9 +212,9 @@ public class UserRepository : IUserRepository
             SET display_name = @display_name, bio = @bio, image = @image
             WHERE username = @username";
         
-        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
-        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
-        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image);
+        DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
+        DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
         
         command.ExecuteNonQuery();

@@ -70,16 +70,4 @@ public class BattleLogic
 
         return damage;
     }
-
-    private bool IsEffectiveAgainst(ElementType attacker, ElementType defender)
-    {
-        return (attacker == ElementType.Water && defender == ElementType.Fire) ||
-               (attacker == ElementType.Fire && defender == ElementType.Normal) ||
-               (attacker == ElementType.Normal && defender == ElementType.Water);
-    }
-
-    private bool IsWeakAgainst(ElementType attacker, ElementType defender)
-    {
-        return IsEffectiveAgainst(defender, attacker);
-    }
 }
