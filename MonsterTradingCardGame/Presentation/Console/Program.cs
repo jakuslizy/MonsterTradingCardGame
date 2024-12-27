@@ -36,7 +36,8 @@ public class Program
 
             // BattleQueue initialisieren
             var battleQueue = new BattleQueue();
-
+            var tradingRepository = new TradingRepository();
+            var tradingService = new TradingService(tradingRepository, cardRepository);
             // Server-Komponenten initialisieren
             const int port = 10001;
             var router = new Router(
@@ -47,7 +48,8 @@ public class Program
                 packageRepository,
                 userRepository,
                 statsRepository,
-                battleQueue
+                battleQueue,
+                tradingService
             );
 
             var requestProcessor = new RequestProcessor(router);

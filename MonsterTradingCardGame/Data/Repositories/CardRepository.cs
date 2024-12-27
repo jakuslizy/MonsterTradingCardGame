@@ -135,8 +135,16 @@ namespace MonsterTradingCardGame.Data.Repositories
             var id = reader["id"].ToString() ?? "";
             var damage = Convert.ToInt32(reader["damage"]);
             var elementType = Enum.Parse<ElementType>(reader["element_type"].ToString() ?? "Normal");
+            var userId = Convert.ToInt32(reader["user_id"]);
+            var inDeck = Convert.ToBoolean(reader["in_deck"]);
             
-            return CardFactory.CreateCard(id, name, damage, elementType);
+            var card = CardFactory.CreateCard(id, name, damage, elementType);
+            if (card != null)
+            {
+                card.UserId = userId;
+                card.InDeck = inDeck;
+            }
+            return card;
         }
 
         public Card? CreateCard(string id, string name, int damage, ElementType elementType)

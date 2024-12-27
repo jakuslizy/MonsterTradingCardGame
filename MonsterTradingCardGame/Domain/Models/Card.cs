@@ -7,30 +7,21 @@ public enum ElementType
     Water
 }
 
-public abstract class Card(string id, string name, int damage, ElementType elementType)
+public abstract class Card
 {
-    public string Id { get; } = id;
-    public string Name { get; } = name;
-    public int Damage { get; } = damage;
-    public ElementType ElementType { get; } = elementType;
-    public bool InDeck { get; set; } = false;
-    public bool InStack { get; set; } = true;
+    public string Id { get; }
+    public string Name { get; }
+    public int Damage { get; }
+    public ElementType ElementType { get; }
+    public int UserId { get; set; }
+    public bool InDeck { get; set; }
 
-    public override string ToString()
+    protected Card(string id, string name, int damage, ElementType elementType)
     {
-        return $"{Name} (Damage: {Damage}, Element: {ElementType})";
-    }
-    public override bool Equals(object? obj)
-    {
-        if (obj is Card other)
-        {
-            return Id == other.Id;
-        }
-        return false;
-    }
-
-    public override int GetHashCode()
-    {
-        return Id.GetHashCode();
+        Id = id;
+        Name = name;
+        Damage = damage;
+        ElementType = elementType;
+        InDeck = false;
     }
 }
