@@ -1,5 +1,4 @@
 using System.Data;
-using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
@@ -30,7 +29,7 @@ namespace MonsterTradingCardGame.Data.Repositories
             return trades;
         }
 
-        public Trading GetTrade(string id)
+        public Trading? GetTrade(string id)
         {
             using var command = _dal.CreateCommand(@"
                 SELECT id, card_to_trade, type, minimum_damage, user_id 
@@ -64,7 +63,7 @@ namespace MonsterTradingCardGame.Data.Repositories
             DataLayer.AddParameterWithValue(command, "@cardToTrade", DbType.String, trade.CardToTrade);
             DataLayer.AddParameterWithValue(command, "@type", DbType.String, trade.Type);
             DataLayer.AddParameterWithValue(command, "@minimumDamage", DbType.Int32, 
-                (object)trade.MinimumDamage ?? DBNull.Value);
+                trade.MinimumDamage.HasValue ? trade.MinimumDamage.Value : DBNull.Value);
             DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, trade.UserId);
 
             command.ExecuteNonQuery();
