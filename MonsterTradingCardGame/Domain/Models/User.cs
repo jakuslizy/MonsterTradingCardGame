@@ -9,7 +9,6 @@ public class User
     private List<Card> _stack;
     private List<Card> _deck;
     public int Coins { get; private set; }
-    public int Elo { get; private set; }
     public string? Name { get; set; }
     public string? Bio { get; set; }
     public string? Image { get; set; }
@@ -22,8 +21,7 @@ public class User
         string passwordHash, 
         int id = 0, 
         DateTime? createdAt = null, 
-        int coins = 20, 
-        int elo = 100)
+        int coins = 20)
     {
         Id = id;
         Username = username;
@@ -32,7 +30,6 @@ public class User
         _stack = new List<Card>();
         _deck = new List<Card>();
         Coins = coins;
-        Elo = elo;
     }
 
 public void SetDeck(List<Card> cards)
@@ -65,10 +62,5 @@ public void ClearDeck()
     public void UpdateCoins(int newAmount)
     {
         Coins = newAmount;
-    }
-
-    public void UpdateElo(int newAmount)
-    {
-        Elo = newAmount;
     }
 }

@@ -19,13 +19,12 @@ public class UserRepository : IUserRepository
     public void AddUser(User user)
     {
         using var command = _dal.CreateCommand(@"
-            INSERT INTO users (username, password_hash, coins, elo, created_at, display_name, bio, image)
-            VALUES (@username, @password_hash, @coins, @elo, @created_at, @display_name, @bio, @image)
+            INSERT INTO users (username, password_hash, coins, created_at, display_name, bio, image)
+            VALUES (@username, @password_hash, @coins, @created_at, @display_name, @bio, @image)
             RETURNING id");
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
         DataLayer.AddParameterWithValue(command, "@password_hash", DbType.String, user.PasswordHash);
         DataLayer.AddParameterWithValue(command, "@coins", DbType.Int32, user.Coins);
-        DataLayer.AddParameterWithValue(command, "@elo", DbType.Int32, user.Elo);
         DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, user.CreatedAt);
         DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name);
         DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio);
@@ -46,8 +45,7 @@ public class UserRepository : IUserRepository
                 username: reader.GetString(reader.GetOrdinal("username")),
                 passwordHash: reader.GetString(reader.GetOrdinal("password_hash")),
                 createdAt: reader.GetDateTime(reader.GetOrdinal("created_at")),
-                coins: reader.GetInt32(reader.GetOrdinal("coins")),
-                elo: reader.GetInt32(reader.GetOrdinal("elo"))
+                coins: reader.GetInt32(reader.GetOrdinal("coins"))
             )
             {
                 Name = reader.IsDBNull(reader.GetOrdinal("display_name")) ? null : reader.GetString(reader.GetOrdinal("display_name")),
@@ -71,8 +69,7 @@ public class UserRepository : IUserRepository
                 username: reader.GetString(reader.GetOrdinal("username")),
                 passwordHash: reader.GetString(reader.GetOrdinal("password_hash")),
                 createdAt: reader.GetDateTime(reader.GetOrdinal("created_at")),
-                coins: reader.GetInt32(reader.GetOrdinal("coins")),
-                elo: reader.GetInt32(reader.GetOrdinal("elo"))
+                coins: reader.GetInt32(reader.GetOrdinal("coins"))
             );
         }
 

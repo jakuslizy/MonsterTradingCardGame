@@ -7,11 +7,13 @@ public class UserService : IUserService
 {
     private readonly UserRepository _userRepository;
     private readonly SessionRepository _sessionRepository;
+    private readonly StatsRepository _statsRepository;
 
-    public UserService(UserRepository userRepository, SessionRepository sessionRepository)
+    public UserService(UserRepository userRepository, SessionRepository sessionRepository, StatsRepository statsRepository)
     {
         _userRepository = userRepository;
         _sessionRepository = sessionRepository;
+        _statsRepository = statsRepository;
     }
 
     public User RegisterUser(string username, string password)
@@ -26,6 +28,8 @@ public class UserService : IUserService
         Console.WriteLine($"UserService - Hashed password: {hashedPassword}");
         var newUser = new User(username, hashedPassword);
         _userRepository.AddUser(newUser);
+        var initialStats = new Stats(newUser.Id);
+        _statsRepository.CreateStats(initialStats);
         return newUser;
     }
 
@@ -106,5 +110,15 @@ public class UserService : IUserService
         user.Image = image;
 
         _userRepository.UpdateUserData(user);
+    }
+    
+    public Stats GetUserStats(int userId)
+    {
+        var stats = _statsRepository.GetStatsByUserId(userId);
+        if (stats == null)
+        {
+            throw new InvalidOperationException("Stats not found");
+        }
+        return stats;
     }
 }

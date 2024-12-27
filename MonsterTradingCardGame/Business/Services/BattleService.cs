@@ -1,16 +1,19 @@
 using MonsterTradingCardGame.Business.Logic;
 using MonsterTradingCardGame.Domain.Models;
 using System.Text;
+using MonsterTradingCardGame.Data.Repositories;
 
 namespace MonsterTradingCardGame.Business.Services;
 
 public class BattleService : IBattleService
 {
     private readonly BattleLogic _battleLogic;
+    private readonly StatsRepository _statsRepository;
 
-    public BattleService()
+    public BattleService(StatsRepository statsRepository)
     {
         _battleLogic = new BattleLogic();
+        _statsRepository = statsRepository;
     }
 
     public string ExecuteBattle(User player1, User player2)
@@ -47,23 +50,34 @@ public class BattleService : IBattleService
             }
         }
 
+        var stats1 = _statsRepository.GetStatsByUserId(player1.Id);
+        var stats2 = _statsRepository.GetStatsByUserId(player2.Id);
+
+        stats1.GamesPlayed++;
+        stats2.GamesPlayed++;
+
         if (player1Deck.Count > player2Deck.Count)
         {
-            log.AppendLine($"{player1.Username} wins the battle!");
-            player1.UpdateElo(3);
-            player2.UpdateElo(-5);
+            stats1.GamesWon++;
+            stats2.GamesLost++;
+            stats1.Elo += 3;
+            stats2.Elo -= 5;
         }
         else if (player2Deck.Count > player1Deck.Count)
         {
-            log.AppendLine($"{player2.Username} wins the battle!");
-            player2.UpdateElo(3);
-            player1.UpdateElo(-5);
+            stats2.GamesWon++;
+            stats1.GamesLost++;
+            stats2.Elo += 3;
+            stats1.Elo -= 5;
         }
         else
         {
             log.AppendLine("The battle ends in a draw!");
         }
 
+        _statsRepository.UpdateStats(stats1);
+        _statsRepository.UpdateStats(stats2);
+        
         return log.ToString();
     }
 }

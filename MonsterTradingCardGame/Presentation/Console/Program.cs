@@ -16,11 +16,12 @@ public class Program
         // Repositories initialisieren
         var userRepository = new UserRepository(null);
         var sessionRepository = new SessionRepository();
+        var statsRepository = new StatsRepository();
 
         // Services initialisieren
         var cardService = new CardService(userRepository);
-        var battleService = new BattleService();
-        var userService = new UserService(userRepository, sessionRepository);
+        var battleService = new BattleService(statsRepository);
+        var userService = new UserService(userRepository, sessionRepository, statsRepository);
 
         // PackageRepository mit cardService initialisieren
         var packageRepository = new PackageRepository(cardService);
@@ -37,7 +38,8 @@ public class Program
             battleService, 
             packageService,
             packageRepository,    
-            userRepository       
+            userRepository,
+            statsRepository
         );
         var requestProcessor = new RequestProcessor(router);
         var tcpListener = new TcpListener(IPAddress.Any, port);

@@ -12,7 +12,8 @@ namespace MonsterTradingCardGame.API.Server
         private readonly ICardService _cardService;         
         private readonly IBattleService _battleService;
         private readonly PackageRepository _packageRepository;  
-        private readonly IUserRepository _userRepository;      
+        private readonly IUserRepository _userRepository; 
+        private readonly StatsRepository _statsRepository;
 
         public Router(
             IUserService userService, 
@@ -20,7 +21,8 @@ namespace MonsterTradingCardGame.API.Server
             IBattleService battleService, 
             IPackageService packageService,
             PackageRepository packageRepository,    
-            IUserRepository userRepository)         
+            IUserRepository userRepository,
+            StatsRepository statsRepository)         
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;
@@ -28,7 +30,8 @@ namespace MonsterTradingCardGame.API.Server
             _cardService = cardService;           
             _battleService = battleService;
             _packageRepository = packageRepository;  
-            _userRepository = userRepository;        
+            _userRepository = userRepository; 
+            _statsRepository = statsRepository;
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -104,6 +107,8 @@ namespace MonsterTradingCardGame.API.Server
                 ("PUT", "/deck") => HandleConfigureDeck(user, body),
                 ("GET", var p) when p.StartsWith("/users/") => HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => HandleUpdateUserData(user, p[7..], body),
+                ("GET", "/stats") => HandleGetStats(user),              // Stats Route
+                //("POST", "/battles") => HandleBattle(user), 
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -325,6 +330,32 @@ namespace MonsterTradingCardGame.API.Server
             catch (Exception ex)
             {
                 return new Response(500, $"Error updating user data: {ex.Message}", "application/json");
+            }
+        }
+        private Response HandleGetStats(User user)
+        {
+            try
+            {
+                var stats = _userService.GetUserStats(user.Id);
+                var statsResponse = new
+                {
+                    Name = user.Username,
+                    ELO = stats.Elo,
+                    GamesPlayed = stats.GamesPlayed,
+                    GamesWon = stats.GamesWon,
+                    GamesLost = stats.GamesLost,
+                    WinRate = stats.GamesPlayed > 0 
+                        ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
+                        : "0%"
+                };
+
+                return new Response(200, 
+                    System.Text.Json.JsonSerializer.Serialize(statsResponse), 
+                    "application/json");
+            }
+            catch (Exception ex)
+            {
+                return new Response(500, $"Error retrieving stats: {ex.Message}", "application/json");
             }
         }
     }
