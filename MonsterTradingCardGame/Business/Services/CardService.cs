@@ -1,7 +1,6 @@
-using MonsterTradingCardGame.Data;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Domain.Models.MonsterCards;
 using MonsterTradingCardGame.Data.Repositories;
+using MonsterTradingCardGame.Business.Factories;
 
 namespace MonsterTradingCardGame.Business.Services;
 
@@ -75,26 +74,6 @@ public void ConfigureDeck(User user, List<string> cardIds)
 
     public Card? CreateCard(string id, string name, int damage, ElementType elementType)
     {
-        // Element aus dem Namen extrahieren
-        elementType = ElementType.Normal;
-        if (name.StartsWith("Water")) elementType = ElementType.Water;
-        if (name.StartsWith("Fire")) elementType = ElementType.Fire;
-        
-        // Kartentyp aus dem Namen extrahieren
-        if (name.EndsWith("Spell"))
-        {
-            return new SpellCard(id, name, damage, elementType);
-        }
-        
-        // Monster-Karten
-        if (name.EndsWith("Goblin")) return new Goblin(id, name, damage, elementType);
-        if (name.EndsWith("Dragon")) return new Dragon(id, name, damage, elementType);
-        if (name.EndsWith("Wizard")) return new Wizzard(id, name, damage, elementType);
-        if (name.EndsWith("Ork")) return new Ork(id, name, damage, elementType);
-        if (name.EndsWith("Knight")) return new Knight(id, name, damage, elementType);
-        if (name.EndsWith("Kraken")) return new Kraken(id, name, damage, elementType);
-        if (name.Contains("FireElf")) return new FireElf(id, name, damage, elementType);
-        
-        throw new InvalidOperationException($"Unknown card type: {name}");
+        return CardFactory.CreateCard(id, name, damage, elementType);
     }
 }

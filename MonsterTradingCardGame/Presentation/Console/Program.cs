@@ -18,7 +18,7 @@ public class Program
             
 
             // Services und Repositories mit korrekter Reihenfolge
-            var cardRepository = new CardRepository(null);
+            var cardRepository = new CardRepository();
             var userRepository = new UserRepository(cardRepository); 
             var cardService = new CardService(userRepository);
             var statsRepository = new StatsRepository();
@@ -32,7 +32,7 @@ public class Program
             var packageRepository = new PackageRepository(cardService);
             var battleService = new BattleService(statsRepository, userRepository);
             var userService = new UserService(userRepository, sessionRepository, statsRepository);
-            var packageService = new PackageService(packageRepository, userRepository, cardService);
+            var packageService = new PackageService(packageRepository, cardService);
 
             // BattleQueue initialisieren
             var battleQueue = new BattleQueue();

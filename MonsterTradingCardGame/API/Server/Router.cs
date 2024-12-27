@@ -1,7 +1,7 @@
 using System.Text.Json;
 using MonsterTradingCardGame.Business.Services;
+using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Data.Repositories; 
 
 namespace MonsterTradingCardGame.API.Server
 {
@@ -185,7 +185,7 @@ namespace MonsterTradingCardGame.API.Server
                 });
 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(cardsList), 
+                    JsonSerializer.Serialize(cardsList), 
                     "application/json");
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace MonsterTradingCardGame.API.Server
             try
             {
                 var deck = _cardService.GetUserDeck(user);
-                if (deck == null || !deck.Any())
+                if (!deck.Any())
                 {
                     return new Response(200, "[]", "application/json");
                 }
@@ -213,13 +213,13 @@ namespace MonsterTradingCardGame.API.Server
 
                 var deckResponse = deck.Select(card => new
                 {
-                    Id = card.Id,
-                    Name = card.Name,
-                    Damage = card.Damage
+                    card.Id,
+                    card.Name,
+                    card.Damage
                 }).ToList();
 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(deckResponse), 
+                    JsonSerializer.Serialize(deckResponse), 
                     "application/json");
             }
             catch (Exception ex)
@@ -237,7 +237,7 @@ namespace MonsterTradingCardGame.API.Server
                     return new Response(400, "Request body is empty", "application/json");
                 }
 
-                var cardIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(body);
+                var cardIds = JsonSerializer.Deserialize<List<string>>(body);
                 if (cardIds == null)
                 {
                     return new Response(400, "Invalid request body", "application/json");
@@ -249,16 +249,16 @@ namespace MonsterTradingCardGame.API.Server
                 var updatedDeck = _cardService.GetUserDeck(user);
                 var deckResponse = updatedDeck.Select(card => new
                 {
-                    Id = card.Id,
-                    Name = card.Name,
-                    Damage = card.Damage
+                    card.Id,
+                    card.Name,
+                    card.Damage
                 }).ToList();
 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(deckResponse), 
+                    JsonSerializer.Serialize(deckResponse), 
                     "application/json");
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
                 return new Response(400, "Invalid JSON format", "application/json");
             }
@@ -285,13 +285,13 @@ namespace MonsterTradingCardGame.API.Server
                 var user = _userService.GetUserData(username);
                 var userData = new
                 {
-                    Name = user.Name,
-                    Bio = user.Bio,
-                    Image = user.Image
+                    user.Name,
+                    user.Bio,
+                    user.Image
                 };
                 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(userData), 
+                    JsonSerializer.Serialize(userData), 
                     "application/json");
             }
             catch (Exception ex)
@@ -309,7 +309,7 @@ namespace MonsterTradingCardGame.API.Server
                     return new Response(403, "Access denied", "application/json");
                 }
 
-                var updateData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+                var updateData = JsonSerializer.Deserialize<Dictionary<string, string>>(body);
                 if (updateData == null)
                 {
                     return new Response(400, "Invalid request body", "application/json");
@@ -324,7 +324,7 @@ namespace MonsterTradingCardGame.API.Server
 
                 return new Response(200, "User data updated successfully", "application/json");
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
                 return new Response(400, "Invalid JSON format", "application/json");
             }
@@ -342,16 +342,16 @@ namespace MonsterTradingCardGame.API.Server
                 {
                     Name = user.Username,
                     ELO = stats.Elo,
-                    GamesPlayed = stats.GamesPlayed,
-                    GamesWon = stats.GamesWon,
-                    GamesLost = stats.GamesLost,
+                    stats.GamesPlayed,
+                    stats.GamesWon,
+                    stats.GamesLost,
                     WinRate = stats.GamesPlayed > 0 
                         ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
                         : "0%"
                 };
 
                 return new Response(200, 
-                    System.Text.Json.JsonSerializer.Serialize(statsResponse), 
+                    JsonSerializer.Serialize(statsResponse), 
                     "application/json");
             }
             catch (Exception ex)
@@ -379,9 +379,9 @@ namespace MonsterTradingCardGame.API.Server
                 
                         return new { 
                             Rank = rank,
-                            Name = user.Username, 
-                            Elo = stats.Elo,
-                            GamesPlayed = stats.GamesPlayed,
+                            Name = user?.Username,
+                            stats.Elo,
+                            stats.GamesPlayed,
                             WinRate = stats.GamesPlayed > 0 
                                 ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
                                 : "0%"

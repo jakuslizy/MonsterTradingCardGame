@@ -1,20 +1,16 @@
 using System.Data;
-using System.Data.Common;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Business.Services;
-using MonsterTradingCardGame.Domain.Models.MonsterCards;
+using MonsterTradingCardGame.Business.Factories;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
     public class CardRepository : ICardRepository
     {
         private readonly DataLayer _dal;
-        private readonly ICardService _cardService;
 
-        public CardRepository(ICardService? cardService)
+        public CardRepository()
         {
             _dal = DataLayer.Instance;
-            _cardService = cardService;
         }
 
         public void AddCard(Card card, int userId)
@@ -140,32 +136,12 @@ namespace MonsterTradingCardGame.Data.Repositories
             var damage = Convert.ToInt32(reader["damage"]);
             var elementType = Enum.Parse<ElementType>(reader["element_type"].ToString() ?? "Normal");
             
-            return CreateCard(id, name, damage, elementType);
+            return CardFactory.CreateCard(id, name, damage, elementType);
         }
 
         public Card? CreateCard(string id, string name, int damage, ElementType elementType)
         {
-            // Element aus dem Namen extrahieren
-            elementType = ElementType.Normal;
-            if (name.StartsWith("Water")) elementType = ElementType.Water;
-            if (name.StartsWith("Fire")) elementType = ElementType.Fire;
-            
-            // Kartentyp aus dem Namen extrahieren
-            if (name.EndsWith("Spell"))
-            {
-                return new SpellCard(id, name, damage, elementType);
-            }
-            
-            // Monster-Karten
-            if (name.EndsWith("Goblin")) return new Goblin(id, name, damage, elementType);
-            if (name.EndsWith("Dragon")) return new Dragon(id, name, damage, elementType);
-            if (name.EndsWith("Wizard")) return new Wizzard(id, name, damage, elementType);
-            if (name.EndsWith("Ork")) return new Ork(id, name, damage, elementType);
-            if (name.EndsWith("Knight")) return new Knight(id, name, damage, elementType);
-            if (name.EndsWith("Kraken")) return new Kraken(id, name, damage, elementType);
-            if (name.Contains("FireElf")) return new FireElf(id, name, damage, elementType);
-            
-            throw new InvalidOperationException($"Unknown card type: {name}");
+            return CardFactory.CreateCard(id, name, damage, elementType);
         }
     }
 }
