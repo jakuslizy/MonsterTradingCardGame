@@ -64,4 +64,26 @@ public class StatsRepository
         
         command.ExecuteNonQuery();
     }
+    public List<Stats> GetAllStats()
+    {
+        var stats = new List<Stats>();
+        using var command = _dal.CreateCommand("SELECT * FROM stats");
+        using var reader = command.ExecuteReader();
+    
+        while (reader.Read())
+        {
+            stats.Add(new Stats(
+                userId: reader.GetInt32(reader.GetOrdinal("user_id")))
+            {
+                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                GamesPlayed = reader.GetInt32(reader.GetOrdinal("games_played")),
+                GamesWon = reader.GetInt32(reader.GetOrdinal("games_won")),
+                GamesLost = reader.GetInt32(reader.GetOrdinal("games_lost")),
+                Elo = reader.GetInt32(reader.GetOrdinal("elo")),
+                CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
+                UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at"))
+            });
+        }
+        return stats;
+    }
 }

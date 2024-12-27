@@ -108,6 +108,7 @@ namespace MonsterTradingCardGame.API.Server
                 ("GET", var p) when p.StartsWith("/users/") => HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => HandleUpdateUserData(user, p[7..], body),
                 ("GET", "/stats") => HandleGetStats(user),              // Stats Route
+                ("GET", "/scoreboard") => HandleScoreboard(),          // Scoreboard Route
                 //("POST", "/battles") => HandleBattle(user), 
                 _ => new Response(404, "Not Found", "text/plain")
             };
@@ -356,6 +357,29 @@ namespace MonsterTradingCardGame.API.Server
             catch (Exception ex)
             {
                 return new Response(500, $"Error retrieving stats: {ex.Message}", "application/json");
+            }
+        }
+
+        private Response HandleScoreboard()
+        {
+            try
+            {
+                var scoreboard = _statsRepository.GetAllStats()
+                    .OrderByDescending(s => s.Elo)
+                    .Select(stats =>
+                    {
+                        var user = _userRepository.GetUserById(stats.UserId);
+                        return new { Name = user.Username, Elo = stats.Elo };
+                    })
+                    .ToList();
+
+                return new Response(200,
+                    System.Text.Json.JsonSerializer.Serialize(scoreboard),
+                    "application/json");
+            }
+            catch (Exception ex)
+            {
+                return new Response(500, ex.Message, "application/json");
             }
         }
     }
