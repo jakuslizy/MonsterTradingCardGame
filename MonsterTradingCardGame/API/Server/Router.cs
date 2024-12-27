@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Data.Repositories; 
@@ -366,15 +367,33 @@ namespace MonsterTradingCardGame.API.Server
             {
                 var scoreboard = _statsRepository.GetAllStats()
                     .OrderByDescending(s => s.Elo)
-                    .Select(stats =>
+                    .Select((stats, index) => 
                     {
                         var user = _userRepository.GetUserById(stats.UserId);
-                        return new { Name = user.Username, Elo = stats.Elo };
+                        string rank = (index + 1) switch
+                        {
+                            1 => " 1st Place",
+                            2 => " 2nd Place", 
+                            3 => " 3rd Place",
+                            _ => $"#{index + 1}"
+                        };
+                
+                        return new { 
+                            Rank = rank,
+                            Name = user.Username, 
+                            Elo = stats.Elo,
+                            GamesPlayed = stats.GamesPlayed,
+                            WinRate = stats.GamesPlayed > 0 
+                                ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
+                                : "0%"
+                        };
                     })
                     .ToList();
 
-                return new Response(200,
-                    System.Text.Json.JsonSerializer.Serialize(scoreboard),
+                // JSON mit ordentlicher Formatierung
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                return new Response(200, 
+                    JsonSerializer.Serialize(scoreboard, options), 
                     "application/json");
             }
             catch (Exception ex)
