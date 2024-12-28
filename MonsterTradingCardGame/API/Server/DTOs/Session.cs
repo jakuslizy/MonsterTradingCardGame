@@ -1,4 +1,4 @@
-namespace MonsterTradingCardGame.Domain.Models;
+namespace MonsterTradingCardGame.API.Server.DTOs;
 
 public class Session(string token, int userId, DateTime createdAt, DateTime expiresAt)
 {

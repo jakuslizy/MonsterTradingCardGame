@@ -1,5 +1,5 @@
 using System.Data;
-using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.API.Server.DTOs;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 

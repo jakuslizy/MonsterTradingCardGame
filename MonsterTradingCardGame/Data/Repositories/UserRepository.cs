@@ -141,34 +141,48 @@ public class UserRepository : IUserRepository
 
     public void UpdateUserDeck(int userId, List<string> cardIds)
     {
-        // Zuerst alle Karten des Users auf in_deck = false setzen
         using var connection = _dal.CreateConnection();
-        using var resetCommand = connection.CreateCommand();
-        resetCommand.CommandText = @"
-            UPDATE cards 
-            SET in_deck = false
-            WHERE user_id = @userId";
-        DataLayer.AddParameterWithValue(resetCommand, "@userId", DbType.Int32, userId);
-        resetCommand.ExecuteNonQuery();
-        
-        if (cardIds.Count > 0)
+        using var transaction = connection.BeginTransaction();
+        try
         {
-            // Dann die ausgewählten Karten auf in_deck = true setzen
-            using var updateCommand = connection.CreateCommand();
-            updateCommand.CommandText = @"
+            // Zuerst alle Karten des Users auf in_deck = false setzen
+            using var resetCommand = connection.CreateCommand();
+            resetCommand.Transaction = transaction;
+            resetCommand.CommandText = @"
                 UPDATE cards 
-                SET in_deck = true
-                WHERE user_id = @userId AND id = ANY(@cardIds)";
+                SET in_deck = false
+                WHERE user_id = @userId";
+            DataLayer.AddParameterWithValue(resetCommand, "@userId", DbType.Int32, userId);
+            resetCommand.ExecuteNonQuery();
             
-            updateCommand.Parameters.Clear();
-            DataLayer.AddParameterWithValue(updateCommand, "@userId", DbType.Int32, userId);
-            var parameter = updateCommand.CreateParameter();
-            parameter.ParameterName = "@cardIds";
-            parameter.Value = cardIds.ToArray();
-            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array;
-            updateCommand.Parameters.Add(parameter);
-            
-            updateCommand.ExecuteNonQuery();
+            if (cardIds.Count > 0)
+            {
+                // Dann die ausgewählten Karten auf in_deck = true setzen
+                using var updateCommand = connection.CreateCommand();
+                updateCommand.Transaction = transaction;
+                updateCommand.CommandText = @"
+                    UPDATE cards 
+                    SET in_deck = true
+                    WHERE user_id = @userId AND id = ANY(@cardIds)";
+                
+                updateCommand.Parameters.Clear();
+                DataLayer.AddParameterWithValue(updateCommand, "@userId", DbType.Int32, userId);
+                var parameter = updateCommand.CreateParameter();
+                parameter.ParameterName = "@cardIds";
+                parameter.Value = cardIds.ToArray();
+                ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
+                updateCommand.Parameters.Add(parameter);
+                
+                updateCommand.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            Console.WriteLine($"Fehler in UpdateUserDeck: {ex}");
+            throw;
         }
     }
 

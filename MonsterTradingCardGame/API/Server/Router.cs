@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;

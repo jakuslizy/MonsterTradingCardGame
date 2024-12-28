@@ -1,3 +1,4 @@
+using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
 

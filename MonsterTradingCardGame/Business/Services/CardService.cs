@@ -39,22 +39,38 @@ public void ConfigureDeck(User user, List<string> cardIds)
         // Hole alle Karten des Users direkt aus der Datenbank
         var userCards = _userRepository.GetUserCards(user.Id);
         
-        // Prüfe, ob alle Karten dem User gehören
+        // Debug-Ausgabe
+        Console.WriteLine($"User {user.Username} hat {userCards.Count} Karten:");
+        foreach(var card in userCards)
+        {
+            Console.WriteLine($"- {card.Id}: {card.Name}");
+        }
+        
+        Console.WriteLine("\nVersuche folgende Karten ins Deck zu legen:");
         foreach(var cardId in cardIds)
         {
-            if (!userCards.Any(c => c.Id == cardId))
-            {
-                throw new InvalidOperationException($"Card {cardId} is not in user's stack");
-            }
+            Console.WriteLine($"- {cardId}");
+        }
+
+        // Prüfe, ob alle Karten dem User gehören
+        var missingCards = cardIds.Where(id => !userCards.Any(c => c.Id == id)).ToList();
+        if (missingCards.Any())
+        {
+            throw new InvalidOperationException(
+                $"Folgende Karten wurden nicht im Stack des Users gefunden: {string.Join(", ", missingCards)}");
         }
 
         // Update direkt in der Datenbank
         _userRepository.UpdateUserDeck(user.Id, cardIds);
     }
+    catch (InvalidOperationException)
+    {
+        throw;
+    }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error in ConfigureDeck: {ex}");
-        throw;
+        Console.WriteLine($"Fehler in ConfigureDeck: {ex}");
+        throw new InvalidOperationException($"Fehler beim Konfigurieren des Decks: {ex.Message}");
     }
 }
 

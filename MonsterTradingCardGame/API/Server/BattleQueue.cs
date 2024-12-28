@@ -1,5 +1,6 @@
 using MonsterTradingCardGame.Domain.Models;
 
+
 namespace MonsterTradingCardGame.API.Server;
 
 public class BattleQueue

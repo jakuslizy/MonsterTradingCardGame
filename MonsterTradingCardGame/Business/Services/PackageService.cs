@@ -1,5 +1,6 @@
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.API.Server.DTOs;
 using System.Text.Json;
 
 namespace MonsterTradingCardGame.Business.Services
@@ -65,8 +66,8 @@ namespace MonsterTradingCardGame.Business.Services
             }
 
             public string Id { get; set; } = "";
-            public string Name { get; } = "";
-            public float Damage { get; }
+            public string Name { get; set; } = "";
+            public float Damage { get; set; }
         }
     }
 }

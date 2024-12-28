@@ -1,5 +1,5 @@
 using System.Text;
-using MonsterTradingCardGame.Domain.Models;
+using MonsterTradingCardGame.API.Server.DTOs;
 
 namespace MonsterTradingCardGame.API.Server
 {

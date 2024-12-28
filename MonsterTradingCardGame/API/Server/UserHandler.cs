@@ -1,6 +1,6 @@
 using System.Text.Json;
+using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services;
-using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.API.Server;
 
