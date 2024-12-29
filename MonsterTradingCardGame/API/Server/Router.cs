@@ -12,6 +12,7 @@ namespace MonsterTradingCardGame.API.Server
         private readonly PackageHandler _packageHandler;
         private readonly TradingHandler _tradingHandler;
         private readonly IUserService _userService;
+        private readonly CardHandler _cardHandler;
         private readonly ICardService _cardService;         
         private readonly IBattleService _battleService;
         private readonly IPackageRepository _packageRepository;  
@@ -34,6 +35,7 @@ namespace MonsterTradingCardGame.API.Server
             _userHandler = new UserHandler(userService);
             _packageHandler = new PackageHandler(packageService, userRepository, packageRepository);
             _tradingHandler = new TradingHandler(tradingService);
+            _cardHandler = new CardHandler(cardService);
             _userService = userService;
             _cardService = cardService;           
             _battleService = battleService;
@@ -112,9 +114,9 @@ namespace MonsterTradingCardGame.API.Server
             {
                 ("POST", "/transactions/packages") => _packageHandler.HandleBuyPackage(user),
                 ("POST", "/packages") => _packageHandler.HandleCreatePackage(user.Username, body),
-                ("GET", "/cards") => HandleGetUserCards(user),
-                ("GET", "/deck") => HandleGetDeck(user, queryParams.GetValueOrDefault("format")),
-                ("PUT", "/deck") => HandleConfigureDeck(user, body),
+                ("GET", "/cards") => _cardHandler.HandleGetUserCards(user),
+                ("GET", "/deck") => _cardHandler.HandleGetDeck(user, queryParams.GetValueOrDefault("format")),
+                ("PUT", "/deck") => _cardHandler.HandleConfigureDeck(user, body),
                 ("GET", var p) when p.StartsWith("/users/") => _userHandler.HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => _userHandler.HandleUpdateUserData(user, p[7..], body),
                 ("GET", "/stats") => HandleGetStats(user),
@@ -126,112 +128,6 @@ namespace MonsterTradingCardGame.API.Server
                 ("DELETE", var p) when p.StartsWith("/tradings/") => _tradingHandler.HandleDeleteTrading(user, p[10..]),
                 _ => new Response(404, "Not Found", "text/plain")
             };
-        }
-
-        private Response HandleGetUserCards(User user)
-        {
-            try 
-            {
-                var cards = _cardService.GetUserCards(user);
-                if (!cards.Any())
-                {
-                    return new Response(200, "[]", "application/json");
-                }
-
-                var cardsList = cards.Select(card => new
-                {
-                    card.Id,
-                    card.Name,
-                    card.Damage
-                });
-
-                return new Response(200, 
-                    JsonSerializer.Serialize(cardsList), 
-                    "application/json");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in HandleGetUserCards: {ex}");
-                return new Response(500, $"Error retrieving cards: {ex.Message}", "application/json");
-            }
-        }
-        private Response HandleGetDeck(User user, string? format = null)
-        {
-            try
-            {
-                var deck = _cardService.GetUserDeck(user);
-                if (!deck.Any())
-                {
-                    return new Response(200, "[]", "application/json");
-                }
-
-                if (format?.ToLower() == "plain")
-                {
-                    var plainText = string.Join("\n", deck.Select(card => 
-                        $"Card: {card.Name} ({card.Id}), Damage: {card.Damage}"));
-                    return new Response(200, plainText, "text/plain");
-                }
-
-                var deckResponse = deck.Select(card => new
-                {
-                    card.Id,
-                    card.Name,
-                    card.Damage
-                }).ToList();
-
-                return new Response(200, 
-                    JsonSerializer.Serialize(deckResponse), 
-                    "application/json");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in HandleGetDeck: {ex}");
-                return new Response(500, "Internal server error", "application/json");
-            }
-        }
-        private Response HandleConfigureDeck(User user, string body)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(body))
-                {
-                    return new Response(400, "Request body is empty", "application/json");
-                }
-
-                var cardIds = JsonSerializer.Deserialize<List<string>>(body);
-                if (cardIds == null)
-                {
-                    return new Response(400, "Invalid request body", "application/json");
-                }
-
-                _cardService.ConfigureDeck(user, cardIds);
-                
-                // Nach erfolgreicher Konfiguration die aktualisierten Karten aus der DB holen
-                var updatedDeck = _cardService.GetUserDeck(user);
-                var deckResponse = updatedDeck.Select(card => new
-                {
-                    card.Id,
-                    card.Name,
-                    card.Damage
-                }).ToList();
-
-                return new Response(200, 
-                    JsonSerializer.Serialize(deckResponse), 
-                    "application/json");
-            }
-            catch (JsonException)
-            {
-                return new Response(400, "Invalid JSON format", "application/json");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return new Response(400, ex.Message, "application/json");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in HandleConfigureDeck: {ex}");
-                return new Response(500, "Internal server error", "application/json");
-            }
         }
         private Response HandleGetStats(User user)
         {
@@ -336,7 +232,5 @@ namespace MonsterTradingCardGame.API.Server
                 return new Response(500, "Internal server error", "application/json");
             }
         }
-
-        
     }
 }
