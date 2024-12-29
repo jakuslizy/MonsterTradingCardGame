@@ -5,24 +5,16 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.API.Server.Handlers
 {
-    public class PackageHandler
+    public class PackageHandler(
+        IPackageService packageService,
+        IUserRepository userRepository,
+        IPackageRepository packageRepository)
     {
-        private readonly IPackageService _packageService;
-        private readonly IUserRepository _userRepository;
-        private readonly IPackageRepository _packageRepository;
-
-        public PackageHandler(IPackageService packageService, IUserRepository userRepository, IPackageRepository packageRepository)
-        {
-            _packageService = packageService;
-            _userRepository = userRepository;
-            _packageRepository = packageRepository;
-        }
-
         public Response HandleCreatePackage(string username, string body)
         {
             try
             {
-                _packageService.CreatePackage(body, username);
+                packageService.CreatePackage(body, username);
                 return new Response(201, "Package created successfully", "application/json");
             }
             catch (UnauthorizedAccessException)
@@ -41,24 +33,24 @@ namespace MonsterTradingCardGame.API.Server.Handlers
 
         public Response HandleBuyPackage(User user)
         {
-            try 
+            try
             {
                 // Hole aktuelle Coins aus der DB
-                var currentCoins = _userRepository.GetUserCoins(user.Id);
+                var currentCoins = userRepository.GetUserCoins(user.Id);
                 if (currentCoins < Package.PackagePrice)
                 {
                     return new Response(402, "Not enough money", "application/json");
                 }
 
-                var package = _packageRepository.GetPackage(user.Id);
+                var package = packageRepository.GetPackage(user.Id);
                 if (package == null)
                 {
                     return new Response(404, "No packages available", "application/json");
                 }
 
                 // Direkt in der DB aktualisieren
-                _userRepository.UpdateUserCoins(user.Id, currentCoins - Package.PackagePrice);
-                _userRepository.SaveUserCards(user.Id, package.GetCards().ToList());
+                userRepository.UpdateUserCoins(user.Id, currentCoins - Package.PackagePrice);
+                userRepository.SaveUserCards(user.Id, package.GetCards().ToList());
 
                 return new Response(201, "Package successfully acquired", "application/json");
             }
@@ -69,4 +61,3 @@ namespace MonsterTradingCardGame.API.Server.Handlers
         }
     }
 }
-        

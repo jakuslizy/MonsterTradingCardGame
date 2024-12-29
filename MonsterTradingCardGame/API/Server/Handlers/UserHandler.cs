@@ -99,9 +99,9 @@ public class UserHandler(IUserService userService)
                 user.Bio,
                 user.Image
             };
-            
-            return new Response(200, 
-                JsonSerializer.Serialize(userData), 
+
+            return new Response(200,
+                JsonSerializer.Serialize(userData),
                 "application/json");
         }
         catch (Exception ex)
@@ -109,37 +109,38 @@ public class UserHandler(IUserService userService)
             return new Response(500, $"Error retrieving user data: {ex.Message}", "application/json");
         }
     }
+
     public Response HandleUpdateUserData(User requestingUser, string username, string body)
+    {
+        try
         {
-            try
+            if (requestingUser.Username != username)
             {
-                if (requestingUser.Username != username)
-                {
-                    return new Response(403, "Access denied", "application/json");
-                }
-
-                var updateData = JsonSerializer.Deserialize<Dictionary<string, string>>(body);
-                if (updateData == null)
-                {
-                    return new Response(400, "Invalid request body", "application/json");
-                }
-
-                _userService.UpdateUserData(
-                    username,
-                    updateData.GetValueOrDefault("Name"),
-                    updateData.GetValueOrDefault("Bio"),
-                    updateData.GetValueOrDefault("Image")
-                );
-
-                return new Response(200, "User data updated successfully", "application/json");
+                return new Response(403, "Access denied", "application/json");
             }
-            catch (JsonException)
+
+            var updateData = JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+            if (updateData == null)
             {
-                return new Response(400, "Invalid JSON format", "application/json");
+                return new Response(400, "Invalid request body", "application/json");
             }
-            catch (Exception ex)
-            {
-                return new Response(500, $"Error updating user data: {ex.Message}", "application/json");
-            }
+
+            _userService.UpdateUserData(
+                username,
+                updateData.GetValueOrDefault("Name"),
+                updateData.GetValueOrDefault("Bio"),
+                updateData.GetValueOrDefault("Image")
+            );
+
+            return new Response(200, "User data updated successfully", "application/json");
         }
+        catch (JsonException)
+        {
+            return new Response(400, "Invalid JSON format", "application/json");
+        }
+        catch (Exception ex)
+        {
+            return new Response(500, $"Error updating user data: {ex.Message}", "application/json");
+        }
+    }
 }

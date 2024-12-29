@@ -1,73 +1,48 @@
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.API.Server.DTOs;
 using System.Text.Json;
 
 namespace MonsterTradingCardGame.Business.Services
 {
-    public class PackageService : IPackageService
+    public class PackageService(
+        PackageRepository packageRepository,
+        ICardService cardService)
+        : IPackageService
     {
-        private readonly PackageRepository _packageRepository;
-        private readonly ICardService _cardService;
-
-        public PackageService(PackageRepository packageRepository, 
-                             ICardService cardService)
-        {
-            _packageRepository = packageRepository;
-            _cardService = cardService;
-        }
-
         public void CreatePackage(string cardDtosJson, string username)
         {
-            // Verify admin rights
             if (username != "admin")
             {
                 throw new UnauthorizedAccessException("Only admin can create packages");
             }
 
-            // Parse cards from JSON
-            var cardDtos = JsonSerializer.Deserialize<List<CardDto>>(cardDtosJson) 
-                ?? throw new ArgumentException("Invalid card data");
+            // Direkt in eine Liste von Dictionaries deserialisieren
+            var cardsData = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(cardDtosJson)
+                            ?? throw new ArgumentException("Invalid card data");
 
-            if (cardDtos.Count != 5)
-            {
-                throw new ArgumentException("Package must contain exactly 5 cards");
-            }
-
-            // Convert DTOs to domain models
             var cards = new List<Card>();
-            foreach (var dto in cardDtos)
+            foreach (var cardData in cardsData)
             {
-                var card = _cardService.CreateCard(dto.Id, dto.Name, 
-                                                 (int)Math.Round(dto.Damage), 
-                                                 ElementType.Normal);
+                var id = cardData["Id"].GetString() ?? "";
+                var name = cardData["Name"].GetString() ?? "";
+                var damage = (int)Math.Round(cardData["Damage"].GetDouble());
+
+                var card = cardService.CreateCard(id, name, damage, ElementType.Normal);
                 if (card == null)
                 {
-                    throw new ArgumentException($"Invalid card type: {dto.Name}");
+                    throw new ArgumentException($"Invalid card type: {name}");
                 }
+
                 cards.Add(card);
             }
 
-            // Create package with cards
             var package = new Package();
             foreach (var card in cards)
             {
                 package.AddCard(card);
             }
 
-            _packageRepository.CreatePackage(package, cards);
-        }
-
-        private class CardDto
-        {
-            public CardDto(float damage)
-            {
-                Damage = damage;
-            }
-
-            public string Id { get; set; } = "";
-            public string Name { get; set; } = "";
-            public float Damage { get; set; }
+            packageRepository.CreatePackage(package, cards);
         }
     }
 }

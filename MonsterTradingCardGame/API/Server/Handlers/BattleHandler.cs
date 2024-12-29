@@ -5,40 +5,32 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.API.Server.Handlers;
 
-public class BattleHandler
+public class BattleHandler(IBattleService battleService, BattleQueue battleQueue)
 {
-    private readonly IBattleService _battleService;
-    private readonly BattleQueue _battleQueue;
-
-    public BattleHandler(IBattleService battleService, BattleQueue battleQueue)
-    {
-        _battleService = battleService;
-        _battleQueue = battleQueue;
-    }
-    
     public Response HandleBattle(User user)
     {
         try
         {
             // Prüfen ob ein anderer Spieler wartet
-            var waitingPlayer = _battleQueue.GetWaitingPlayer();
-                
+            var waitingPlayer = battleQueue.GetWaitingPlayer();
+
             if (waitingPlayer == null)
             {
                 // Wenn kein Spieler wartet, füge aktuellen Spieler zur Queue hinzu
-                _battleQueue.AddPlayer(user);
-                return new Response(202, JsonSerializer.Serialize(new { Message = "Waiting for opponent" }), "application/json");
+                battleQueue.AddPlayer(user);
+                return new Response(202, JsonSerializer.Serialize(new { Message = "Waiting for opponent" }),
+                    "application/json");
             }
-                
+
             if (waitingPlayer.Id == user.Id)
             {
                 return new Response(400, "Cannot battle against yourself", "application/json");
             }
 
             // Battle durchführen
-            var battleLog = _battleService.ExecuteBattle(waitingPlayer, user);
-            _battleQueue.RemovePlayer(waitingPlayer);
-                
+            var battleLog = battleService.ExecuteBattle(waitingPlayer, user);
+            battleQueue.RemovePlayer(waitingPlayer);
+
             return new Response(200, battleLog, "text/plain");
         }
         catch (InvalidOperationException ex)
