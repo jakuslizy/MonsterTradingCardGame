@@ -14,13 +14,7 @@ namespace MonsterTradingCardGame.API.Server
         private readonly IUserService _userService;
         private readonly CardHandler _cardHandler;
         private readonly StatsHandler _statsHandler;
-        private readonly ICardService _cardService;         
-        private readonly IBattleService _battleService;
-        private readonly IPackageRepository _packageRepository;  
-        private readonly IUserRepository _userRepository; 
-        private readonly IStatsRepository _statsRepository;
-        private readonly BattleQueue _battleQueue;
-        private readonly ITradingService _tradingService;
+        private readonly BattleHandler _battleHandler;
 
         public Router(
             IUserService userService, 
@@ -38,14 +32,8 @@ namespace MonsterTradingCardGame.API.Server
             _tradingHandler = new TradingHandler(tradingService);
             _cardHandler = new CardHandler(cardService);
             _statsHandler = new StatsHandler(userService, statsRepository, userRepository);
+            _battleHandler = new BattleHandler(battleService, battleQueue);
             _userService = userService;
-            _cardService = cardService;           
-            _battleService = battleService;
-            _packageRepository = packageRepository;  
-            _userRepository = userRepository; 
-            _statsRepository = statsRepository;
-            _battleQueue = battleQueue;
-            _tradingService = tradingService;
         }
 
         public Response RouteRequest(string? requestLine, Dictionary<string, string> headers, string body)
@@ -114,59 +102,37 @@ namespace MonsterTradingCardGame.API.Server
             // Router für geschützte Endpunkte
             return (method, path) switch
             {
+                // Package routes
                 ("POST", "/transactions/packages") => _packageHandler.HandleBuyPackage(user),
                 ("POST", "/packages") => _packageHandler.HandleCreatePackage(user.Username, body),
+            
+                // Card routes
                 ("GET", "/cards") => _cardHandler.HandleGetUserCards(user),
                 ("GET", "/deck") => _cardHandler.HandleGetDeck(user, queryParams.GetValueOrDefault("format")),
                 ("PUT", "/deck") => _cardHandler.HandleConfigureDeck(user, body),
+            
+                // User routes
                 ("GET", var p) when p.StartsWith("/users/") => _userHandler.HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => _userHandler.HandleUpdateUserData(user, p[7..], body),
+            
+                // Stats routes
                 ("GET", "/stats") => _statsHandler.HandleGetStats(user),
                 ("GET", "/scoreboard") => _statsHandler.HandleScoreboard(),
-                ("POST", "/battles") => HandleBattle(user),
+            
+                // Battle route
+                ("POST", "/battles") => _battleHandler.HandleBattle(user),
+            
+                // Trading routes
                 ("GET", "/tradings") => _tradingHandler.HandleGetTradings(),
                 ("POST", "/tradings") => _tradingHandler.HandleCreateTrading(user, body),
                 ("POST", var p) when p.StartsWith("/tradings/") => _tradingHandler.HandleExecuteTrading(user, p[10..], body),
                 ("DELETE", var p) when p.StartsWith("/tradings/") => _tradingHandler.HandleDeleteTrading(user, p[10..]),
+            
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
         
 
-        private Response HandleBattle(User user)
-        {
-            try
-            {
-                // Prüfen ob ein anderer Spieler wartet
-                var waitingPlayer = _battleQueue.GetWaitingPlayer();
-                
-                if (waitingPlayer == null)
-                {
-                    // Wenn kein Spieler wartet, füge aktuellen Spieler zur Queue hinzu
-                    _battleQueue.AddPlayer(user);
-                    return new Response(202, JsonSerializer.Serialize(new { Message = "Waiting for opponent" }), "application/json");
-                }
-                
-                if (waitingPlayer.Id == user.Id)
-                {
-                    return new Response(400, "Cannot battle against yourself", "application/json");
-                }
-
-                // Battle durchführen
-                var battleLog = _battleService.ExecuteBattle(waitingPlayer, user);
-                _battleQueue.RemovePlayer(waitingPlayer);
-                
-                return new Response(200, battleLog, "text/plain");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return new Response(400, ex.Message, "application/json");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in battle: {ex}");
-                return new Response(500, "Internal server error", "application/json");
-            }
-        }
+        
     }
 }
