@@ -14,6 +14,10 @@ public class Tests
     private IUserRepository _userRepository;
     private SessionRepository _sessionRepository;
     private IPackageService _packageService;
+    private ITradingService _tradingService;
+    private IBattleQueue _battleQueue;
+    private IStatsRepository _statsRepository;
+    private IPackageRepository _packageRepository;
 
     [SetUp]
     public void Setup()
@@ -21,12 +25,27 @@ public class Tests
         _userRepository = Substitute.For<IUserRepository>();
         _sessionRepository = Substitute.For<SessionRepository>();
         
-        _userService = Substitute.For<IUserService>(); // Substitute verwenden
+        _userService = Substitute.For<IUserService>();
         _cardService = Substitute.For<ICardService>();
         _battleService = Substitute.For<IBattleService>();
         _packageService = Substitute.For<IPackageService>();
         
-        _router = new Router(_userService, _cardService, _battleService, _packageService);
+        _packageRepository = Substitute.For<IPackageRepository>();
+        _statsRepository = Substitute.For<IStatsRepository>();
+        _battleQueue = Substitute.For<IBattleQueue>();
+        _tradingService = Substitute.For<ITradingService>();
+
+        _router = new Router(
+            _userService,
+            _cardService,
+            _battleService,
+            _packageService,
+            _packageRepository,
+            _userRepository,
+            _statsRepository,
+            _battleQueue,
+            _tradingService
+        );
     }
 
     [Test]

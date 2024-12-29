@@ -13,22 +13,22 @@ namespace MonsterTradingCardGame.API.Server
         private readonly IPackageService _packageService; 
         private readonly ICardService _cardService;         
         private readonly IBattleService _battleService;
-        private readonly PackageRepository _packageRepository;  
+        private readonly IPackageRepository _packageRepository;  
         private readonly IUserRepository _userRepository; 
-        private readonly StatsRepository _statsRepository;
-        private readonly BattleQueue _battleQueue;
-        private readonly TradingService _tradingService;
+        private readonly IStatsRepository _statsRepository;
+        private readonly IBattleQueue _battleQueue;
+        private readonly ITradingService _tradingService;
 
         public Router(
             IUserService userService, 
             ICardService cardService, 
             IBattleService battleService, 
             IPackageService packageService,
-            PackageRepository packageRepository,    
+            IPackageRepository packageRepository,
             IUserRepository userRepository,
-            StatsRepository statsRepository,
-            BattleQueue battleQueue,
-            TradingService tradingService)         
+            IStatsRepository statsRepository,
+            IBattleQueue battleQueue,
+            ITradingService tradingService)         
         {
             _userHandler = new UserHandler(userService);
             _userService = userService;
@@ -420,7 +420,7 @@ namespace MonsterTradingCardGame.API.Server
                 {
                     // Wenn kein Spieler wartet, füge aktuellen Spieler zur Queue hinzu
                     _battleQueue.AddPlayer(user);
-                    return new Response(202, "Waiting for opponent", "application/json");
+                    return new Response(202, JsonSerializer.Serialize(new { Message = "Waiting for opponent" }), "application/json");
                 }
                 
                 if (waitingPlayer.Id == user.Id)

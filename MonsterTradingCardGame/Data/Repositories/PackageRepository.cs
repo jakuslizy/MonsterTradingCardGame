@@ -6,7 +6,7 @@ using NpgsqlTypes;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
-    public class PackageRepository
+    public class PackageRepository : IPackageRepository
     {
         private readonly DataLayer _dal = DataLayer.Instance;
         private readonly ICardService _cardService;

@@ -20,6 +20,7 @@ namespace MonsterTradingCardGame.API.Server
             {
                 200 => "OK",
                 201 => "Created",
+                202 => "Accepted",
                 400 => "Bad Request",
                 401 => "Unauthorized",
                 402 => "Payment Required",

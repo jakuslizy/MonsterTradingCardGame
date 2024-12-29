@@ -3,7 +3,7 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 
-public class StatsRepository
+public class StatsRepository : IStatsRepository
 {
     private readonly DataLayer _dal = DataLayer.Instance;
 
