@@ -1,19 +1,14 @@
 using System.Data;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
 using NpgsqlTypes;
 using Npgsql;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository(ICardRepository cardRepository) : IUserRepository
 {
     private readonly DataLayer _dal = DataLayer.Instance;
-    private readonly ICardRepository _cardRepository;
-
-    public UserRepository(ICardRepository cardRepository)
-    {
-        _cardRepository = cardRepository;
-    }
 
     public void AddUser(User user)
     {
@@ -23,14 +18,14 @@ public class UserRepository : IUserRepository
             INSERT INTO users (username, password_hash, coins, created_at, display_name, bio, image)
             VALUES (@username, @password_hash, 20, @created_at, @display_name, @bio, @image)
             RETURNING id";
-            
+
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
         DataLayer.AddParameterWithValue(command, "@password_hash", DbType.String, user.PasswordHash);
         DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, user.CreatedAt);
         DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
-        
+
         var id = (int)(command.ExecuteScalar() ?? 0);
         user.Id = id;
     }
@@ -52,9 +47,13 @@ public class UserRepository : IUserRepository
                 coins: reader.GetInt32(reader.GetOrdinal("coins"))
             )
             {
-                Name = reader.IsDBNull(reader.GetOrdinal("display_name")) ? null : reader.GetString(reader.GetOrdinal("display_name")),
+                Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("display_name")),
                 Bio = reader.IsDBNull(reader.GetOrdinal("bio")) ? null : reader.GetString(reader.GetOrdinal("bio")),
-                Image = reader.IsDBNull(reader.GetOrdinal("image")) ? null : reader.GetString(reader.GetOrdinal("image"))
+                Image = reader.IsDBNull(reader.GetOrdinal("image"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("image"))
             };
         }
 
@@ -81,7 +80,7 @@ public class UserRepository : IUserRepository
 
         return null;
     }
-    
+
     public void UpdateUser(User user)
     {
         using var connection = _dal.CreateConnection();
@@ -92,12 +91,12 @@ public class UserRepository : IUserRepository
                 bio = @bio,
                 image = @image
             WHERE id = @id";
-        
+
         DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, user.Id);
-        
+
         command.ExecuteNonQuery();
     }
 
@@ -109,16 +108,16 @@ public class UserRepository : IUserRepository
             UPDATE users 
             SET coins = @coins
             WHERE id = @id";
-        
+
         DataLayer.AddParameterWithValue(command, "@coins", DbType.Int32, coins);
         DataLayer.AddParameterWithValue(command, "@id", DbType.Int32, userId);
-        
+
         command.ExecuteNonQuery();
     }
 
     public List<Card> GetUserCards(int userId)
     {
-        return _cardRepository.GetCardsByUserId(userId);
+        return cardRepository.GetCardsByUserId(userId);
     }
 
     public void SaveUserCards(int userId, List<Card> cards)
@@ -129,7 +128,7 @@ public class UserRepository : IUserRepository
             UPDATE cards 
             SET user_id = @userId 
             WHERE id = @cardId";
-        
+
         foreach (var card in cards)
         {
             command.Parameters.Clear();
@@ -154,7 +153,7 @@ public class UserRepository : IUserRepository
                 WHERE user_id = @userId";
             DataLayer.AddParameterWithValue(resetCommand, "@userId", DbType.Int32, userId);
             resetCommand.ExecuteNonQuery();
-            
+
             if (cardIds.Count > 0)
             {
                 // Dann die ausgewählten Karten auf in_deck = true setzen
@@ -164,7 +163,7 @@ public class UserRepository : IUserRepository
                     UPDATE cards 
                     SET in_deck = true
                     WHERE user_id = @userId AND id = ANY(@cardIds)";
-                
+
                 updateCommand.Parameters.Clear();
                 DataLayer.AddParameterWithValue(updateCommand, "@userId", DbType.Int32, userId);
                 var parameter = updateCommand.CreateParameter();
@@ -172,7 +171,7 @@ public class UserRepository : IUserRepository
                 parameter.Value = cardIds.ToArray();
                 ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
                 updateCommand.Parameters.Add(parameter);
-                
+
                 updateCommand.ExecuteNonQuery();
             }
 
@@ -195,25 +194,26 @@ public class UserRepository : IUserRepository
             SELECT c.id, c.name, c.damage, c.element_type 
             FROM cards c
             WHERE c.user_id = @userId AND c.in_deck = true";
-        
+
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-        
+
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
-            var card = _cardRepository.CreateCard(
+            var card = cardRepository.CreateCard(
                 reader.GetString(reader.GetOrdinal("id")),
                 reader.GetString(reader.GetOrdinal("name")),
                 reader.GetInt32(reader.GetOrdinal("damage")),
                 Enum.Parse<ElementType>(reader.GetString(reader.GetOrdinal("element_type")))
             );
-            
+
             if (card != null)
             {
                 card.InDeck = true;
                 cards.Add(card);
             }
         }
+
         return cards;
     }
 
@@ -225,12 +225,12 @@ public class UserRepository : IUserRepository
             UPDATE users 
             SET display_name = @display_name, bio = @bio, image = @image
             WHERE username = @username";
-        
+
         DataLayer.AddParameterWithValue(command, "@display_name", DbType.String, user.Name ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@bio", DbType.String, user.Bio ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@image", DbType.String, user.Image ?? (object)DBNull.Value);
         DataLayer.AddParameterWithValue(command, "@username", DbType.String, user.Username);
-        
+
         command.ExecuteNonQuery();
     }
 
@@ -244,9 +244,9 @@ public class UserRepository : IUserRepository
             AND id IN (SELECT user_id FROM cards WHERE in_deck = true GROUP BY user_id HAVING COUNT(*) = 4)
             ORDER BY RANDOM() 
             LIMIT 1";
-        
+
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-        
+
         using var reader = command.ExecuteReader();
         return reader.Read() ? MapUserFromReader(reader) : null;
     }
@@ -260,7 +260,9 @@ public class UserRepository : IUserRepository
             createdAt: reader.GetDateTime(reader.GetOrdinal("created_at"))
         )
         {
-            Name = reader.IsDBNull(reader.GetOrdinal("display_name")) ? null : reader.GetString(reader.GetOrdinal("display_name")),
+            Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("display_name")),
             Bio = reader.IsDBNull(reader.GetOrdinal("bio")) ? null : reader.GetString(reader.GetOrdinal("bio")),
             Image = reader.IsDBNull(reader.GetOrdinal("image")) ? null : reader.GetString(reader.GetOrdinal("image"))
         };
@@ -272,12 +274,13 @@ public class UserRepository : IUserRepository
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT coins FROM users WHERE id = @userId";
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-        
+
         using var reader = command.ExecuteReader();
         if (reader.Read())
         {
             return reader.GetInt32(0);
         }
+
         throw new InvalidOperationException($"User with ID {userId} not found");
     }
 

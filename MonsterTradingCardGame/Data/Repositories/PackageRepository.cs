@@ -1,21 +1,15 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Business.Services.Interfaces;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
-    public class PackageRepository : IPackageRepository
+    public class PackageRepository(ICardService cardService) : IPackageRepository
     {
         private readonly DataLayer _dal = DataLayer.Instance;
-        private readonly ICardService _cardService;
-
-        public PackageRepository(ICardService cardService)
-        {
-            _cardService = cardService;
-        }
 
         public void CreatePackage(Package package, List<Card> cards)
         {
@@ -33,7 +27,7 @@ namespace MonsterTradingCardGame.Data.Repositories
                 // Create package
                 DataLayer.AddParameterWithValue(command, "@price", DbType.Int32, Package.PackagePrice);
                 DataLayer.AddParameterWithValue(command, "@created_at", DbType.DateTime, DateTime.UtcNow);
-                    
+
                 var packageId = Convert.ToInt32(command.ExecuteScalar());
 
                 // Insert cards
@@ -42,13 +36,14 @@ namespace MonsterTradingCardGame.Data.Repositories
                     using var cardCmd = _dal.CreateCommand(@"
                         INSERT INTO cards (id, name, damage, element_type, package_id)
                         VALUES (@id, @name, @damage, @element_type, @package_id)");
-                        
+
                     DataLayer.AddParameterWithValue(cardCmd, "@id", DbType.String, card.Id);
                     DataLayer.AddParameterWithValue(cardCmd, "@name", DbType.String, card.Name);
                     DataLayer.AddParameterWithValue(cardCmd, "@damage", DbType.Int32, card.Damage);
-                    DataLayer.AddParameterWithValue(cardCmd, "@element_type", DbType.String, card.ElementType.ToString());
+                    DataLayer.AddParameterWithValue(cardCmd, "@element_type", DbType.String,
+                        card.ElementType.ToString());
                     DataLayer.AddParameterWithValue(cardCmd, "@package_id", DbType.Int32, packageId);
-                        
+
                     cardCmd.ExecuteNonQuery();
                 }
             }
@@ -60,20 +55,20 @@ namespace MonsterTradingCardGame.Data.Repositories
         }
 
         // In PackageRepository.cs
-public Package? GetPackage(int userId)
-{
-    using var connection = _dal.CreateConnection();
-    using var command = connection.CreateCommand();
-    using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
-    
-    try
-    {
-        var package = new Package();
-        var hasCards = false;
+        public Package? GetPackage(int userId)
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
 
-        command.Connection = connection;
-        command.Transaction = transaction;
-        command.CommandText = @"
+            try
+            {
+                var package = new Package();
+                var hasCards = false;
+
+                command.Connection = connection;
+                command.Transaction = transaction;
+                command.CommandText = @"
             WITH first_available_package AS (
                 SELECT id 
                 FROM packages 
@@ -91,54 +86,54 @@ public Package? GetPackage(int userId)
             JOIN first_available_package p ON c.package_id = p.id
             WHERE c.user_id IS NULL
             ORDER BY c.id";
-        
-        using (var reader = command.ExecuteReader())
-        {
-            while (reader.Read())
-            {
-                hasCards = true;
-                var cardId = reader.GetString(reader.GetOrdinal("id"));
-                var name = reader.GetString(reader.GetOrdinal("name"));
-                var damage = reader.GetInt32(reader.GetOrdinal("damage"));
-                var elementType = Enum.Parse<ElementType>(
-                    reader.GetString(reader.GetOrdinal("element_type")));
 
-                var card = _cardService.CreateCard(cardId, name, damage, elementType);
-                if (card != null)
+                using (var reader = command.ExecuteReader())
                 {
-                    package.AddCard(card);
-                }
-            }
-        }
+                    while (reader.Read())
+                    {
+                        hasCards = true;
+                        var cardId = reader.GetString(reader.GetOrdinal("id"));
+                        var name = reader.GetString(reader.GetOrdinal("name"));
+                        var damage = reader.GetInt32(reader.GetOrdinal("damage"));
+                        var elementType = Enum.Parse<ElementType>(
+                            reader.GetString(reader.GetOrdinal("element_type")));
 
-        if (hasCards)
-        {
-            command.CommandText = @"
+                        var card = cardService.CreateCard(cardId, name, damage, elementType);
+                        if (card != null)
+                        {
+                            package.AddCard(card);
+                        }
+                    }
+                }
+
+                if (hasCards)
+                {
+                    command.CommandText = @"
                 UPDATE cards 
                 SET user_id = @userId 
                 WHERE id = ANY(@cardIds)";
-                
-            command.Parameters.Clear();
-            DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = "@cardIds";
-            parameter.Value = package.GetCards().Select(c => c.Id).ToArray();
-            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
-            command.Parameters.Add(parameter);
-            
-            command.ExecuteNonQuery();
-            transaction.Commit();
-            return package;
-        }
 
-        transaction.Commit();
-        return null;
-    }
-    catch
-    {
-        transaction.Rollback();
-        throw;
-    }
-}
+                    command.Parameters.Clear();
+                    DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = "@cardIds";
+                    parameter.Value = package.GetCards().Select(c => c.Id).ToArray();
+                    ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
+                    command.Parameters.Add(parameter);
+
+                    command.ExecuteNonQuery();
+                    transaction.Commit();
+                    return package;
+                }
+
+                transaction.Commit();
+                return null;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
     }
 }

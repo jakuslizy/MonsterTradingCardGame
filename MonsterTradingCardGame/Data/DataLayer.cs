@@ -9,9 +9,9 @@ public class DataLayer : IDisposable
     private static DataLayer? _instance;
     private readonly NpgsqlDataSource _dataSource;
 
-    public static DataLayer Instance 
+    public static DataLayer Instance
     {
-        get 
+        get
         {
             if (_instance == null)
             {
@@ -30,6 +30,7 @@ public class DataLayer : IDisposable
                         "Command Timeout=30");
                 }
             }
+
             return _instance;
         }
     }

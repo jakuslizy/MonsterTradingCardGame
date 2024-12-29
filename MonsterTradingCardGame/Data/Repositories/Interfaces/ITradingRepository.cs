@@ -1,4 +1,4 @@
-namespace MonsterTradingCardGame.Data.Repositories;
+namespace MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 public interface ITradingRepository
 {

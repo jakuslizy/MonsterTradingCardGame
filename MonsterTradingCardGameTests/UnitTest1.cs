@@ -1,6 +1,7 @@
 using MonsterTradingCardGame.API.Server;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using NSubstitute;
 
 namespace MonsterTradingCardGameTests;

@@ -1,4 +1,5 @@
 using System.Data;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
@@ -14,7 +15,7 @@ namespace MonsterTradingCardGame.Data.Repositories
 
             var trades = new List<Trading>();
             using var reader = command.ExecuteReader();
-            
+
             while (reader.Read())
             {
                 trades.Add(new Trading(
@@ -37,7 +38,7 @@ namespace MonsterTradingCardGame.Data.Repositories
                 WHERE id = @id");
 
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, id);
-            
+
             using var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -62,7 +63,7 @@ namespace MonsterTradingCardGame.Data.Repositories
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, trade.Id);
             DataLayer.AddParameterWithValue(command, "@cardToTrade", DbType.String, trade.CardToTrade);
             DataLayer.AddParameterWithValue(command, "@type", DbType.String, trade.Type);
-            DataLayer.AddParameterWithValue(command, "@minimumDamage", DbType.Int32, 
+            DataLayer.AddParameterWithValue(command, "@minimumDamage", DbType.Int32,
                 trade.MinimumDamage.HasValue ? trade.MinimumDamage.Value : DBNull.Value);
             DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, trade.UserId);
 

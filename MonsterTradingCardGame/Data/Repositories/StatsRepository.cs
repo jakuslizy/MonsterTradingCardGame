@@ -1,4 +1,5 @@
 using System.Data;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Data.Repositories;
@@ -14,13 +15,13 @@ public class StatsRepository : IStatsRepository
         command.CommandText = @"
             INSERT INTO stats (user_id, games_played, games_won, games_lost, elo)
             VALUES (@userId, @gamesPlayed, @gamesWon, @gamesLost, @elo)";
-        
+
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, stats.UserId);
         DataLayer.AddParameterWithValue(command, "@gamesPlayed", DbType.Int32, stats.GamesPlayed);
         DataLayer.AddParameterWithValue(command, "@gamesWon", DbType.Int32, stats.GamesWon);
         DataLayer.AddParameterWithValue(command, "@gamesLost", DbType.Int32, stats.GamesLost);
         DataLayer.AddParameterWithValue(command, "@elo", DbType.Int32, stats.Elo);
-        
+
         command.ExecuteNonQuery();
     }
 
@@ -30,7 +31,7 @@ public class StatsRepository : IStatsRepository
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT * FROM stats WHERE user_id = @userId";
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-        
+
         using var reader = command.ExecuteReader();
         if (reader.Read())
         {
@@ -46,6 +47,7 @@ public class StatsRepository : IStatsRepository
                 UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at"))
             };
         }
+
         return null;
     }
 
@@ -61,13 +63,13 @@ public class StatsRepository : IStatsRepository
                 elo = @elo,
                 updated_at = CURRENT_TIMESTAMP
             WHERE user_id = @userId";
-        
+
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, stats.UserId);
         DataLayer.AddParameterWithValue(command, "@gamesPlayed", DbType.Int32, stats.GamesPlayed);
         DataLayer.AddParameterWithValue(command, "@gamesWon", DbType.Int32, stats.GamesWon);
         DataLayer.AddParameterWithValue(command, "@gamesLost", DbType.Int32, stats.GamesLost);
         DataLayer.AddParameterWithValue(command, "@elo", DbType.Int32, stats.Elo);
-        
+
         command.ExecuteNonQuery();
     }
 
@@ -76,10 +78,10 @@ public class StatsRepository : IStatsRepository
         using var connection = _dal.CreateConnection();
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT * FROM stats";
-        
+
         var stats = new List<Stats>();
         using var reader = command.ExecuteReader();
-    
+
         while (reader.Read())
         {
             stats.Add(new Stats(
@@ -94,6 +96,7 @@ public class StatsRepository : IStatsRepository
                 UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at"))
             });
         }
+
         return stats;
     }
 }

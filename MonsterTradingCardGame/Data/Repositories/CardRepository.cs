@@ -1,17 +1,13 @@
 using System.Data;
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Business.Factories;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
     public class CardRepository : ICardRepository
     {
-        private readonly DataLayer _dal;
-
-        public CardRepository()
-        {
-            _dal = DataLayer.Instance;
-        }
+        private readonly DataLayer _dal = DataLayer.Instance;
 
         public void AddCard(Card card, int userId)
         {
@@ -20,14 +16,14 @@ namespace MonsterTradingCardGame.Data.Repositories
             command.CommandText = @"
                 INSERT INTO cards (id, name, damage, element_type, user_id, in_deck)
                 VALUES (@id, @name, @damage, @element_type, @userId, @inDeck)";
-                
+
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, card.Id);
             DataLayer.AddParameterWithValue(command, "@name", DbType.String, card.Name);
             DataLayer.AddParameterWithValue(command, "@damage", DbType.Int32, card.Damage);
             DataLayer.AddParameterWithValue(command, "@element_type", DbType.String, card.ElementType.ToString());
             DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
             DataLayer.AddParameterWithValue(command, "@inDeck", DbType.Boolean, card.InDeck);
-                
+
             command.ExecuteNonQuery();
         }
 
@@ -39,10 +35,10 @@ namespace MonsterTradingCardGame.Data.Repositories
                 UPDATE cards 
                 SET in_deck = @inDeck
                 WHERE id = @cardId";
-                
+
             DataLayer.AddParameterWithValue(command, "@cardId", DbType.String, cardId);
             DataLayer.AddParameterWithValue(command, "@inDeck", DbType.Boolean, inDeck);
-                
+
             command.ExecuteNonQuery();
         }
 
@@ -88,12 +84,12 @@ namespace MonsterTradingCardGame.Data.Repositories
                 UPDATE cards 
                 SET name = @name, damage = @damage, element_type = @element_type
                 WHERE id = @id";
-                
+
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, card.Id);
             DataLayer.AddParameterWithValue(command, "@name", DbType.String, card.Name);
             DataLayer.AddParameterWithValue(command, "@damage", DbType.Int32, card.Damage);
             DataLayer.AddParameterWithValue(command, "@element_type", DbType.String, card.ElementType.ToString());
-            
+
             command.ExecuteNonQuery();
         }
 
@@ -103,12 +99,13 @@ namespace MonsterTradingCardGame.Data.Repositories
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT * FROM cards WHERE id = @id";
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, id);
-            
+
             using var reader = command.ExecuteReader();
             if (reader.Read())
             {
                 return CreateCardFromReader(reader);
             }
+
             return null;
         }
 
@@ -119,13 +116,14 @@ namespace MonsterTradingCardGame.Data.Repositories
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT * FROM cards WHERE user_id = @userId";
             DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-            
+
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
                 var card = CreateCardFromReader(reader);
                 if (card != null) cards.Add(card);
             }
+
             return cards;
         }
 
@@ -137,13 +135,14 @@ namespace MonsterTradingCardGame.Data.Repositories
             var elementType = Enum.Parse<ElementType>(reader["element_type"].ToString() ?? "Normal");
             var userId = Convert.ToInt32(reader["user_id"]);
             var inDeck = Convert.ToBoolean(reader["in_deck"]);
-            
+
             var card = CardFactory.CreateCard(id, name, damage, elementType);
             if (card != null)
             {
                 card.UserId = userId;
                 card.InDeck = inDeck;
             }
+
             return card;
         }
 
