@@ -120,7 +120,21 @@ public class UserHandler(IUserService userService)
                 return new Response(403, "Access denied", "application/json");
             }
 
-            var updateData = JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+            if (string.IsNullOrEmpty(body))
+            {
+                return new Response(400, "Request body is empty", "application/json");
+            }
+
+            // Bereinige den Body von ungültigen Zeichen
+            string cleanBody = new string(body.Where(c => !char.IsControl(c) || char.IsWhiteSpace(c)).ToArray());
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            };
+
+            var updateData = JsonSerializer.Deserialize<UpdateUserDataDto>(cleanBody, options);
             if (updateData == null)
             {
                 return new Response(400, "Invalid request body", "application/json");
@@ -128,16 +142,16 @@ public class UserHandler(IUserService userService)
 
             _userService.UpdateUserData(
                 username,
-                updateData.GetValueOrDefault("Name"),
-                updateData.GetValueOrDefault("Bio"),
-                updateData.GetValueOrDefault("Image")
+                updateData.Name,
+                updateData.Bio,
+                updateData.Image
             );
 
             return new Response(200, "User data updated successfully", "application/json");
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return new Response(400, "Invalid JSON format", "application/json");
+            return new Response(400, $"Invalid JSON format: {ex.Message}", "application/json");
         }
         catch (Exception ex)
         {
