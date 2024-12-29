@@ -3,7 +3,7 @@ using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.API.Server;
 
-public class BattleQueue : IBattleQueue
+public class BattleQueue
 {
     private static readonly object Lock = new object();
     private User? _waitingPlayer;
