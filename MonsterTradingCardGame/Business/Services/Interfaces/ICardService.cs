@@ -1,8 +1,8 @@
 using MonsterTradingCardGame.Domain.Models;
 
-namespace MonsterTradingCardGame.Business.Services;
+namespace MonsterTradingCardGame.Business.Services.Interfaces;
 
-public interface ICardService 
+public interface ICardService
 {
     void CreatePackage(List<Card> cards);
     IReadOnlyList<Card> GetUserCards(User user);

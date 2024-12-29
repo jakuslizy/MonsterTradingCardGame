@@ -3,22 +3,15 @@ using MonsterTradingCardGame.Domain.Models;
 using System.Text;
 using MonsterTradingCardGame.Data.Repositories;
 using System.Data;
+using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class BattleService : IBattleService
+public class BattleService(StatsRepository statsRepository, UserRepository userRepository)
+    : IBattleService
 {
-    private readonly BattleLogic _battleLogic;
-    private readonly StatsRepository _statsRepository;
-    private readonly UserRepository _userRepository;
-
-    public BattleService(StatsRepository statsRepository, UserRepository userRepository)
-    {
-        _battleLogic = new BattleLogic();
-        _statsRepository = statsRepository;
-        _userRepository = userRepository;
-    }
+    private readonly BattleLogic _battleLogic = new();
 
     public string ExecuteBattle(User player1, User player2)
     {
@@ -29,18 +22,19 @@ public class BattleService : IBattleService
         }
 
         // Lade die aktuellen Decks aus der Datenbank
-        var player1Deck = _userRepository.GetUserDeck(player1.Id);
-        var player2Deck = _userRepository.GetUserDeck(player2.Id);
+        var player1Deck = userRepository.GetUserDeck(player1.Id);
+        var player2Deck = userRepository.GetUserDeck(player2.Id);
 
         // Validierung der Decks
         if (player1Deck.Count != 4 || player2Deck.Count != 4)
         {
-            throw new InvalidOperationException($"Both players must have exactly 4 cards in their deck. Player1: {player1Deck.Count}, Player2: {player2Deck.Count}");
+            throw new InvalidOperationException(
+                $"Both players must have exactly 4 cards in their deck. Player1: {player1Deck.Count}, Player2: {player2Deck.Count}");
         }
 
         var log = new StringBuilder();
         var rounds = 0;
-        
+
         log.AppendLine($"Battle: {player1.Username} vs {player2.Username}\n");
 
         while (rounds < 100 && player1Deck.Count > 0 && player2Deck.Count > 0)
@@ -55,7 +49,7 @@ public class BattleService : IBattleService
             log.AppendLine($"{player2.Username}'s {card2.Name} ({card2.ElementType}, {card2.Damage} Damage)");
 
             var winner = _battleLogic.DetermineRoundWinner(card1, card2);
-            
+
             switch (winner)
             {
                 case 1:
@@ -95,8 +89,9 @@ public class BattleService : IBattleService
         }
 
         log.AppendLine(battleResult);
-        log.AppendLine($"Final Score - {player1.Username}: {player1Deck.Count} cards, {player2.Username}: {player2Deck.Count} cards");
-        
+        log.AppendLine(
+            $"Final Score - {player1.Username}: {player1Deck.Count} cards, {player2.Username}: {player2Deck.Count} cards");
+
         return log.ToString();
     }
 
@@ -136,8 +131,8 @@ public class BattleService : IBattleService
 
     private void UpdateStats(User winner, User loser, bool isDraw)
     {
-        var winnerStats = _statsRepository.GetStatsByUserId(winner.Id);
-        var loserStats = _statsRepository.GetStatsByUserId(loser.Id);
+        var winnerStats = statsRepository.GetStatsByUserId(winner.Id);
+        var loserStats = statsRepository.GetStatsByUserId(loser.Id);
 
         if (winnerStats == null || loserStats == null)
         {
@@ -149,16 +144,16 @@ public class BattleService : IBattleService
             // ELO Berechnung
             winnerStats.Elo += 3;
             loserStats.Elo = Math.Max(0, loserStats.Elo - 5);
-            
+
             winnerStats.GamesWon++;
             loserStats.GamesLost++;
         }
-        
+
         // Spiele immer aktualisieren
         winnerStats.GamesPlayed++;
         loserStats.GamesPlayed++;
 
-        _statsRepository.UpdateStats(winnerStats);
-        _statsRepository.UpdateStats(loserStats);
+        statsRepository.UpdateStats(winnerStats);
+        statsRepository.UpdateStats(loserStats);
     }
 }

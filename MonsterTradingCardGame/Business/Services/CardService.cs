@@ -1,21 +1,17 @@
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Business.Factories;
+using MonsterTradingCardGame.Business.Services.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class CardService : ICardService
+public class CardService(IUserRepository userRepository) : ICardService
 {
-    private readonly IUserRepository _userRepository;  
-
-    public CardService(IUserRepository userRepository)  
-    {
-        _userRepository = userRepository;
-    }
     public IReadOnlyList<Card> GetUserCards(User user)
     {
-        return _userRepository.GetUserCards(user.Id); 
+        return userRepository.GetUserCards(user.Id);
     }
+
     public void CreatePackage(List<Card> cards)
     {
         var package = new Package();
@@ -26,60 +22,59 @@ public class CardService : ICardService
     }
 
 
-
-public void ConfigureDeck(User user, List<string> cardIds)
-{
-    try 
+    public void ConfigureDeck(User user, List<string> cardIds)
     {
-        if (cardIds.Count != 4)
+        try
         {
-            throw new InvalidOperationException("Deck must contain exactly 4 cards");
-        }
+            if (cardIds.Count != 4)
+            {
+                throw new InvalidOperationException("Deck must contain exactly 4 cards");
+            }
 
-        // Hole alle Karten des Users direkt aus der Datenbank
-        var userCards = _userRepository.GetUserCards(user.Id);
-        
-        // Debug-Ausgabe
-        Console.WriteLine($"User {user.Username} hat {userCards.Count} Karten:");
-        foreach(var card in userCards)
-        {
-            Console.WriteLine($"- {card.Id}: {card.Name}");
-        }
-        
-        Console.WriteLine("\nVersuche folgende Karten ins Deck zu legen:");
-        foreach(var cardId in cardIds)
-        {
-            Console.WriteLine($"- {cardId}");
-        }
+            // Hole alle Karten des Users direkt aus der Datenbank
+            var userCards = userRepository.GetUserCards(user.Id);
 
-        // Prüfe, ob alle Karten dem User gehören
-        var missingCards = cardIds.Where(id => !userCards.Any(c => c.Id == id)).ToList();
-        if (missingCards.Any())
-        {
-            throw new InvalidOperationException(
-                $"Folgende Karten wurden nicht im Stack des Users gefunden: {string.Join(", ", missingCards)}");
-        }
+            // Debug-Ausgabe
+            Console.WriteLine($"User {user.Username} hat {userCards.Count} Karten:");
+            foreach (var card in userCards)
+            {
+                Console.WriteLine($"- {card.Id}: {card.Name}");
+            }
 
-        // Update direkt in der Datenbank
-        _userRepository.UpdateUserDeck(user.Id, cardIds);
+            Console.WriteLine("\nVersuche folgende Karten ins Deck zu legen:");
+            foreach (var cardId in cardIds)
+            {
+                Console.WriteLine($"- {cardId}");
+            }
+
+            // Prüfe, ob alle Karten dem User gehören
+            var missingCards = cardIds.Where(id => !userCards.Any(c => c.Id == id)).ToList();
+            if (missingCards.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Folgende Karten wurden nicht im Stack des Users gefunden: {string.Join(", ", missingCards)}");
+            }
+
+            // Update direkt in der Datenbank
+            userRepository.UpdateUserDeck(user.Id, cardIds);
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler in ConfigureDeck: {ex}");
+            throw new InvalidOperationException($"Fehler beim Konfigurieren des Decks: {ex.Message}");
+        }
     }
-    catch (InvalidOperationException)
-    {
-        throw;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Fehler in ConfigureDeck: {ex}");
-        throw new InvalidOperationException($"Fehler beim Konfigurieren des Decks: {ex.Message}");
-    }
-}
 
 
     public IReadOnlyList<Card> GetUserDeck(User user)
     {
         try
         {
-            return _userRepository.GetUserDeck(user.Id);
+            return userRepository.GetUserDeck(user.Id);
         }
         catch (Exception ex)
         {

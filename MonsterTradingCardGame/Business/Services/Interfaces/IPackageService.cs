@@ -1,4 +1,4 @@
-namespace MonsterTradingCardGame.Business.Services;
+namespace MonsterTradingCardGame.Business.Services.Interfaces;
 
 public interface IPackageService
 {

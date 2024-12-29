@@ -1,6 +1,7 @@
 using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
 using System.Text.Json;
+using MonsterTradingCardGame.Business.Services.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services
 {

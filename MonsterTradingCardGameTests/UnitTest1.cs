@@ -1,5 +1,5 @@
 using MonsterTradingCardGame.API.Server;
-using MonsterTradingCardGame.Business.Services;
+using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories;
 using NSubstitute;
 
@@ -15,7 +15,7 @@ public class Tests
     private SessionRepository _sessionRepository;
     private IPackageService _packageService;
     private ITradingService _tradingService;
-    private IBattleQueue _battleQueue;
+    private BattleQueue _battleQueue;
     private IStatsRepository _statsRepository;
     private IPackageRepository _packageRepository;
 
@@ -32,7 +32,7 @@ public class Tests
         
         _packageRepository = Substitute.For<IPackageRepository>();
         _statsRepository = Substitute.For<IStatsRepository>();
-        _battleQueue = Substitute.For<IBattleQueue>();
+        _battleQueue = Substitute.For<BattleQueue>();
         _tradingService = Substitute.For<ITradingService>();
 
         _router = new Router(
