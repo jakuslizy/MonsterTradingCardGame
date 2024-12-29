@@ -13,6 +13,7 @@ namespace MonsterTradingCardGame.API.Server
         private readonly TradingHandler _tradingHandler;
         private readonly IUserService _userService;
         private readonly CardHandler _cardHandler;
+        private readonly StatsHandler _statsHandler;
         private readonly ICardService _cardService;         
         private readonly IBattleService _battleService;
         private readonly IPackageRepository _packageRepository;  
@@ -36,6 +37,7 @@ namespace MonsterTradingCardGame.API.Server
             _packageHandler = new PackageHandler(packageService, userRepository, packageRepository);
             _tradingHandler = new TradingHandler(tradingService);
             _cardHandler = new CardHandler(cardService);
+            _statsHandler = new StatsHandler(userService, statsRepository, userRepository);
             _userService = userService;
             _cardService = cardService;           
             _battleService = battleService;
@@ -119,8 +121,8 @@ namespace MonsterTradingCardGame.API.Server
                 ("PUT", "/deck") => _cardHandler.HandleConfigureDeck(user, body),
                 ("GET", var p) when p.StartsWith("/users/") => _userHandler.HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => _userHandler.HandleUpdateUserData(user, p[7..], body),
-                ("GET", "/stats") => HandleGetStats(user),
-                ("GET", "/scoreboard") => HandleScoreboard(),
+                ("GET", "/stats") => _statsHandler.HandleGetStats(user),
+                ("GET", "/scoreboard") => _statsHandler.HandleScoreboard(),
                 ("POST", "/battles") => HandleBattle(user),
                 ("GET", "/tradings") => _tradingHandler.HandleGetTradings(),
                 ("POST", "/tradings") => _tradingHandler.HandleCreateTrading(user, body),
@@ -129,73 +131,7 @@ namespace MonsterTradingCardGame.API.Server
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
-        private Response HandleGetStats(User user)
-        {
-            try
-            {
-                var stats = _userService.GetUserStats(user.Id);
-                var statsResponse = new
-                {
-                    Name = user.Username,
-                    ELO = stats.Elo,
-                    stats.GamesPlayed,
-                    stats.GamesWon,
-                    stats.GamesLost,
-                    WinRate = stats.GamesPlayed > 0 
-                        ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
-                        : "0%"
-                };
-
-                return new Response(200, 
-                    JsonSerializer.Serialize(statsResponse), 
-                    "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, $"Error retrieving stats: {ex.Message}", "application/json");
-            }
-        }
-
-        private Response HandleScoreboard()
-        {
-            try
-            {
-                var scoreboard = _statsRepository.GetAllStats()
-                    .OrderByDescending(s => s.Elo)
-                    .Select((stats, index) => 
-                    {
-                        var user = _userRepository.GetUserById(stats.UserId);
-                        string rank = (index + 1) switch
-                        {
-                            1 => " 1st Place",
-                            2 => " 2nd Place", 
-                            3 => " 3rd Place",
-                            _ => $"#{index + 1}"
-                        };
-                
-                        return new { 
-                            Rank = rank,
-                            Name = user?.Username,
-                            stats.Elo,
-                            stats.GamesPlayed,
-                            WinRate = stats.GamesPlayed > 0 
-                                ? (stats.GamesWon * 100.0 / stats.GamesPlayed).ToString("F1") + "%" 
-                                : "0%"
-                        };
-                    })
-                    .ToList();
-
-                // JSON mit ordentlicher Formatierung
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                return new Response(200, 
-                    JsonSerializer.Serialize(scoreboard, options), 
-                    "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, ex.Message, "application/json");
-            }
-        }
+        
 
         private Response HandleBattle(User user)
         {
