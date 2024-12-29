@@ -10,6 +10,7 @@ namespace MonsterTradingCardGame.API.Server
     {
         private readonly UserHandler _userHandler;
         private readonly PackageHandler _packageHandler;
+        private readonly TradingHandler _tradingHandler;
         private readonly IUserService _userService;
         private readonly ICardService _cardService;         
         private readonly IBattleService _battleService;
@@ -32,6 +33,7 @@ namespace MonsterTradingCardGame.API.Server
         {
             _userHandler = new UserHandler(userService);
             _packageHandler = new PackageHandler(packageService, userRepository, packageRepository);
+            _tradingHandler = new TradingHandler(tradingService);
             _userService = userService;
             _cardService = cardService;           
             _battleService = battleService;
@@ -115,13 +117,13 @@ namespace MonsterTradingCardGame.API.Server
                 ("PUT", "/deck") => HandleConfigureDeck(user, body),
                 ("GET", var p) when p.StartsWith("/users/") => _userHandler.HandleGetUserData(user, p[7..]),
                 ("PUT", var p) when p.StartsWith("/users/") => _userHandler.HandleUpdateUserData(user, p[7..], body),
-                ("GET", "/stats") => HandleGetStats(user),              // Stats Route
-                ("GET", "/scoreboard") => HandleScoreboard(),          // Scoreboard Route
+                ("GET", "/stats") => HandleGetStats(user),
+                ("GET", "/scoreboard") => HandleScoreboard(),
                 ("POST", "/battles") => HandleBattle(user),
-                ("GET", "/tradings") => HandleGetTradings(),
-                ("POST", "/tradings") => HandleCreateTrading(user, body),
-                ("POST", var p) when p.StartsWith("/tradings/") => HandleExecuteTrading(user, p[10..], body),
-                ("DELETE", var p) when p.StartsWith("/tradings/") => HandleDeleteTrading(user, p[10..]),
+                ("GET", "/tradings") => _tradingHandler.HandleGetTradings(),
+                ("POST", "/tradings") => _tradingHandler.HandleCreateTrading(user, body),
+                ("POST", var p) when p.StartsWith("/tradings/") => _tradingHandler.HandleExecuteTrading(user, p[10..], body),
+                ("DELETE", var p) when p.StartsWith("/tradings/") => _tradingHandler.HandleDeleteTrading(user, p[10..]),
                 _ => new Response(404, "Not Found", "text/plain")
             };
         }
@@ -335,84 +337,6 @@ namespace MonsterTradingCardGame.API.Server
             }
         }
 
-        private Response HandleGetTradings()
-        {
-            try
-            {
-                var trades = _tradingService.GetTrades();
-                return new Response(200, JsonSerializer.Serialize(trades), "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, ex.Message, "application/json");
-            }
-        }
-
-        private Response HandleCreateTrading(User user, string body)
-        {
-            try
-            {
-                var tradingRequest = JsonSerializer.Deserialize<TradingRequest>(body);
-                if (tradingRequest == null)
-                {
-                    return new Response(400, "Invalid request body", "application/json");
-                }
-                _tradingService.CreateTrade(
-                    tradingRequest.Id,
-                    tradingRequest.CardToTrade,
-                    tradingRequest.Type,
-                    tradingRequest.MinimumDamage,
-                    user
-                );
-                return new Response(201, "Trading deal created", "application/json");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return new Response(403, ex.Message, "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, ex.Message, "application/json");
-            }
-        }
-
-        private Response HandleExecuteTrading(User user, string tradeId, string body)
-        {
-            try
-            {
-                var offeredCardId = JsonSerializer.Deserialize<string>(body);
-                if (offeredCardId == null)
-                {
-                    return new Response(400, "Invalid request body", "application/json");
-                }
-                _tradingService.ExecuteTrade(tradeId, offeredCardId, user);
-                return new Response(201, "Trading deal executed successfully", "application/json");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return new Response(403, ex.Message, "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, ex.Message, "application/json");
-            }
-        }
-
-        private Response HandleDeleteTrading(User user, string tradeId)
-        {
-            try
-            {
-                _tradingService.DeleteTrade(tradeId, user);
-                return new Response(200, "Trading deal deleted successfully", "application/json");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return new Response(403, ex.Message, "application/json");
-            }
-            catch (Exception ex)
-            {
-                return new Response(500, ex.Message, "application/json");
-            }
-        }
+        
     }
 }
