@@ -1,5 +1,4 @@
 using MonsterTradingCardGame.Domain.Models;
-using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Business.Factories;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
