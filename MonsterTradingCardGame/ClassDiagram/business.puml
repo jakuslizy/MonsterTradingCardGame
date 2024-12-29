@@ -1,0 +1,101 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "Business Layer" #LightGreen {
+    interface IUserService {
+        +RegisterUser(username: string, password: string) : User
+        +LoginUser(username: string, password: string) : string
+        +ValidateToken(token: string) : bool
+        +GetUserFromToken(token: string) : User
+        +GetUserStats(userId: int) : Stats
+    }
+
+    interface ICardService {
+        +CreatePackage(cards: List~Card~)
+        +GetUserCards(user: User) : IReadOnlyList~Card~
+        +ConfigureDeck(user: User, cardIds: List~string~)
+        +GetUserDeck(user: User) : IReadOnlyList~Card~
+        +CreateCard(id: string, name: string, damage: int, elementType: ElementType) : Card?
+    }
+
+    interface IBattleService {
+        +ExecuteBattle(player1: User, player2: User) : string
+    }
+
+    interface IPackageService {
+        +CreatePackage(cardsJson: string, username: string)
+    }
+
+    interface ITradingService {
+        +CreateTrade(id: string, cardId: string, type: string, minimumDamage: int?, user: User)
+        +GetTrades() : List~Trading~
+        +ExecuteTrade(tradeId: string, offeredCardId: string, user: User)
+        +DeleteTrade(tradeId: string, user: User)
+    }
+
+    class UserService {
+        -IUserRepository _userRepository
+        -SessionRepository _sessionRepository
+        -StatsRepository _statsRepository
+        +RegisterUser(username: string, password: string) : User
+        +LoginUser(username: string, password: string) : string
+        -HashPassword(password: string) : string
+        -VerifyPassword(password: string, hashedPassword: string) : bool
+    }
+
+    class CardService {
+        -IUserRepository _userRepository
+        +GetUserCards(user: User) : IReadOnlyList~Card~
+        +ConfigureDeck(user: User, cardIds: List~string~)
+        +GetUserDeck(user: User) : IReadOnlyList~Card~
+    }
+
+    class BattleService {
+        -StatsRepository _statsRepository
+        -UserRepository _userRepository
+        -BattleLogic _battleLogic
+        +ExecuteBattle(player1: User, player2: User) : string
+        -TransferCard(card: Card, fromUserId: int, toUserId: int)
+        -UpdateStats(winner: User, loser: User, isDraw: bool)
+    }
+
+    class BattleLogic {
+        +DetermineRoundWinner(card1: Card, card2: Card) : int
+        +CalculateDamage(attackerCard: Card, defenderCard: Card) : int
+    }
+
+    class PackageService {
+        -PackageRepository _packageRepository
+        -ICardService _cardService
+        +CreatePackage(cardsJson: string, username: string)
+    }
+
+    class TradingService {
+        -TradingRepository _tradingRepository
+        -CardRepository _cardRepository
+        +CreateTrade(id: string, cardId: string, type: string, minimumDamage: int?, user: User)
+        +GetTrades() : List~Trading~
+        +ExecuteTrade(tradeId: string, offeredCardId: string, user: User)
+    }
+
+    class CardFactory {
+        +{static} CreateCard(id: string, name: string, damage: int, elementType: ElementType) : Card?
+    }
+}
+
+IUserService <|.. UserService
+ICardService <|.. CardService
+IBattleService <|.. BattleService
+IPackageService <|.. PackageService
+ITradingService <|.. TradingService
+
+BattleService *-- BattleLogic
+CardService --> CardFactory
+
+note "Connection to API Layer" as N1
+note "Connection to Data Layer" as N2
+note "Connection to Domain Models" as N3
+
+@enduml

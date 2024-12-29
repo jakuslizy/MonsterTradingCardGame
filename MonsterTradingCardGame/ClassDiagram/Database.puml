@@ -1,0 +1,76 @@
+@startuml
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <u>x</u>
+
+hide circle
+hide methods
+
+table(users) {
+    primary_key(id): integer
+    username: varchar(50)
+    password_hash: varchar(255)
+    coins: integer = 20
+    created_at: timestamp
+    display_name: varchar(255)
+    bio: text
+    image: text
+}
+
+table(cards) {
+    primary_key(id): varchar(36)
+    name: varchar(255)
+    damage: integer
+    element_type: varchar(50)
+    foreign_key(package_id): integer
+    foreign_key(user_id): integer
+    in_deck: boolean = false
+    created_at: timestamp
+    in_stack: boolean = true
+}
+
+table(packages) {
+    primary_key(id): integer
+    price: integer = 5
+    foreign_key(user_id): integer
+    created_at: timestamp
+    acquired_at: timestamp
+}
+
+table(sessions) {
+    primary_key(token): varchar(255)
+    foreign_key(user_id): integer
+    created_at: timestamp
+    expires_at: timestamp
+}
+
+table(stats) {
+    primary_key(id): integer
+    foreign_key(user_id): integer
+    games_played: integer = 0
+    games_won: integer = 0
+    games_lost: integer = 0
+    elo: integer = 100
+    created_at: timestamp
+    updated_at: timestamp
+}
+
+table(tradings) {
+    primary_key(id): varchar(36)
+    foreign_key(card_to_trade): varchar(36)
+    type: varchar(50)
+    minimum_damage: integer
+    foreign_key(user_id): integer
+    created_at: timestamp
+}
+
+users "1" -- "*" cards : has
+users "1" -- "*" sessions : has
+users "1" -- "1" stats : has
+users "1" -- "*" packages : acquires
+users "1" -- "*" tradings : creates
+packages "1" -- "*" cards : contains
+cards "1" -- "*" tradings : is_traded_in
+
+@enduml

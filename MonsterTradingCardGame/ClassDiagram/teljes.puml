@@ -1,0 +1,75 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "API Layer" #LightBlue {
+    [HTTP Server]
+    [Request Processing]
+    [Routing]
+    [Response Handling]
+    [API Handlers]
+    [DTOs]
+    
+    note right of [API Handlers]
+    UserHandler
+    CardHandler
+    PackageHandler
+    BattleHandler
+    StatsHandler
+    TradingHandler
+    end note
+
+    note right of [DTOs]
+    Request
+    Response
+    LoginData
+    TradingRequest
+    end note
+}
+
+package "Business Layer" #LightGreen {
+    [User Service]
+    [Card Service]
+    [Battle Service]
+    [Package Service]
+    [Trading Service]
+    [Battle Logic]
+}
+
+package "Data Layer" #LightYellow {
+    [User Repository]
+    [Card Repository]
+    [Package Repository]
+    [Stats Repository]
+    [Trading Repository]
+    [DataLayer]
+}
+
+package "Domain Models" #LightPink {
+    [User]
+    [Card]
+    [Package]
+    [Trading]
+    [Stats]
+}
+
+[API Layer] --> [Business Layer] : uses
+[Business Layer] --> [Data Layer] : uses
+[Business Layer] --> [Domain Models] : uses
+[Data Layer] --> [Domain Models] : uses
+
+note right of [Business Layer]
+  Implements business logic,
+  game rules and validations
+end note
+
+note right of [Data Layer]
+  Handles database operations
+  and data persistence
+end note
+
+note right of [Domain Models]
+  Core business entities
+end note
+
+@enduml

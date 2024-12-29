@@ -1,0 +1,121 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "API Layer" #LightBlue {
+    class HttpServer {
+        -TcpListener _server
+        +Start()
+    }
+
+    class RequestProcessor {
+        -Router _router
+        +ProcessRequest(clientObj: object)
+        -ParseHeaders(reader: StreamReader) : Dictionary<string, string>
+        -ReadBody(reader: StreamReader, headers: Dictionary<string, string>) : string
+    }
+
+    class Router {
+        -UserHandler _userHandler
+        -PackageHandler _packageHandler
+        -TradingHandler _tradingHandler
+        -CardHandler _cardHandler
+        -StatsHandler _statsHandler
+        -BattleHandler _battleHandler
+        -BattleQueue _battleQueue
+        +RouteRequest(requestLine: string, headers: Dictionary<string, string>, body: string) : Response
+        -HandleProtectedRoute(method: string, path: string, headers: Dictionary<string, string>, body: string, queryParams: Dictionary<string, string>) : Response
+    }
+
+    class ResponseBuilder {
+        +{static} SendResponse(writer: StreamWriter, response: Response)
+        -{static} GetStatusDescription(statusCode: int) : string
+    }
+
+    class UserHandler {
+        -IUserService _userService
+        +RegisterUser(request: Request) : Response
+        +LoginUser(request: Request) : Response
+        +HandleGetUserData(user: User, username: string) : Response
+        +HandleUpdateUserData(user: User, username: string, body: string) : Response
+    }
+
+    class PackageHandler {
+        -IPackageService _packageService
+        -IUserRepository _userRepository
+        -IPackageRepository _packageRepository
+        +HandleCreatePackage(username: string, body: string) : Response
+        +HandleBuyPackage(user: User) : Response
+    }
+
+    class CardHandler {
+             -ICardService _cardService
+             +HandleGetUserCards(user: User) : Response
+             +HandleGetDeck(user: User, format: string?) : Response
+             +HandleConfigureDeck(user: User, body: string) : Response
+         }
+     
+         class TradingHandler {
+             -ITradingService _tradingService
+             +HandleGetTradings() : Response
+             +HandleCreateTrading(user: User, body: string) : Response
+             +HandleExecuteTrading(user: User, tradeId: string, body: string) : Response
+             +HandleDeleteTrading(user: User, tradeId: string) : Response
+         }
+     
+         class StatsHandler {
+             -IUserService _userService
+             -IStatsRepository _statsRepository
+             -IUserRepository _userRepository
+             +HandleGetStats(user: User) : Response
+             +HandleScoreboard() : Response
+         }
+     
+         class BattleHandler {
+             -IBattleService _battleService
+             -BattleQueue _battleQueue
+             +HandleBattle(user: User) : Response
+         }
+     
+         class BattleQueue {
+             -User? _waitingPlayer
+             +GetWaitingPlayer() : User?
+             +AddPlayer(player: User)
+             +RemovePlayer(player: User)
+         }
+     
+         class Request {
+             +string Method
+             +string Path
+             +string? Body
+             +Dictionary<string, string> QueryParameters
+         }
+     
+         class Response {
+             +int StatusCode
+             +string Content
+             +string ContentType
+         }
+     
+         HttpServer --> RequestProcessor
+         RequestProcessor --> Router
+         Router --> UserHandler
+         Router --> PackageHandler
+         Router --> CardHandler
+         Router --> TradingHandler
+         Router --> StatsHandler
+         Router --> BattleHandler
+         Router --> BattleQueue
+         UserHandler ..> Request
+         UserHandler ..> Response
+         PackageHandler ..> Response
+         CardHandler ..> Response
+         TradingHandler ..> Response
+         StatsHandler ..> Response
+         BattleHandler ..> Response
+         Router ..> Request
+         Router ..> Response
+         ResponseBuilder ..> Response
+     }
+     @enduml

@@ -1,0 +1,106 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "Domain Models" #LightPink {
+    abstract class Card {
+        +string Id
+        +string Name
+        +int Damage
+        +ElementType ElementType
+        +int UserId
+        +bool InDeck
+        #Card(id: string, name: string, damage: int, elementType: ElementType)
+    }
+
+    abstract class MonsterCard {
+        #MonsterCard(id: string, name: string, damage: int, elementType: ElementType)
+    }
+
+    class SpellCard {
+        +SpellCard(id: string, name: string, damage: int, elementType: ElementType)
+    }
+
+    class Dragon
+    class FireElf
+    class Goblin
+    class Knight
+    class Kraken
+    class Ork
+    class Wizzard
+
+    class User {
+        +int Id
+        +string Username
+        -string PasswordHash
+        +DateTime CreatedAt
+        +string? Name
+        +string? Bio
+        +string? Image
+        +User(username: string, passwordHash: string)
+    }
+
+    class Package {
+        -List~Card~ Cards
+        +const int PackagePrice
+        -const int CardsPerPackage
+        +AddCard(card: Card)
+        +IsComplete() : bool
+        +GetCards() : IReadOnlyList~Card~
+    }
+
+    class Trading {
+        +string Id
+        +string CardToTrade
+        +string Type
+        +int? MinimumDamage
+        +int UserId
+        +Trading(id: string, cardToTrade: string, type: string, minimumDamage: int?, userId: int)
+    }
+
+    class Stats {
+        +int Id
+        +int UserId
+        +int GamesPlayed
+        +int GamesWon
+        +int GamesLost
+        +int Elo
+        +DateTime CreatedAt
+        +DateTime UpdatedAt
+        +Stats(userId: int)
+    }
+
+    enum ElementType {
+        Normal
+        Fire
+        Water
+    }
+
+    interface IRepository~T~ {
+        +Create(entity: T)
+        +Get(id: string) : T?
+        +Update(entity: T)
+        +Delete(id: string)
+    }
+}
+
+Card <|-- MonsterCard
+Card <|-- SpellCard
+MonsterCard <|-- Dragon
+MonsterCard <|-- FireElf
+MonsterCard <|-- Goblin
+MonsterCard <|-- Knight
+MonsterCard <|-- Kraken
+MonsterCard <|-- Ork
+MonsterCard <|-- Wizzard
+Card "1" *-- "1" ElementType
+
+Package "1" *-- "*" Card
+User "1" -- "*" Card : owns
+Trading -- Card : references
+Stats -- User : belongs to
+
+note "Connection to Data Layer" as N1
+
+@enduml

@@ -1,0 +1,163 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "API Layer" {
+    class HttpServer {
+        -TcpListener _server
+        +Start()
+    }
+
+    class RequestProcessor {
+        +ProcessRequest(clientObj: object)
+        -ParseHeaders(reader: StreamReader) : Dictionary<string, string>
+        -ReadBody(reader: StreamReader, headers: Dictionary<string, string>) : string
+    }
+
+    class Router {
+        -UserHandler _userHandler
+        -PackageHandler _packageHandler
+        -TradingHandler _tradingHandler
+        -CardHandler _cardHandler
+        -StatsHandler _statsHandler
+        -BattleHandler _battleHandler
+        +RouteRequest(requestLine: string, headers: Dictionary<string, string>, body: string) : Response
+    }
+
+    class BattleQueue {
+        -User? _waitingPlayer
+        +GetWaitingPlayer()
+        +AddPlayer(player: User)
+        +RemovePlayer(player: User)
+    }
+
+    class ResponseBuilder {
+        +{static} SendResponse(writer: StreamWriter, response: Response)
+        -{static} GetStatusDescription(statusCode: int) : string
+    }
+
+    class Handler {
+        <<interface>>
+        +HandleRequest(request: Request) : Response
+    }
+
+    class UserHandler {
+        +RegisterUser(request: Request) : Response
+        +LoginUser(request: Request) : Response
+    }
+
+    class PackageHandler {
+        +HandleCreatePackage(username: string, body: string) : Response
+        +HandleBuyPackage(user: User) : Response
+    }
+
+    class CardHandler {
+        +HandleGetUserCards(user: User) : Response
+        +HandleConfigureDeck(user: User, body: string) : Response
+    }
+
+    class TradingHandler {
+        +HandleGetTradings() : Response
+        +HandleCreateTrading(user: User, body: string) : Response
+    }
+
+    class Request {
+        +string Method
+        +string Path
+        +string? Body
+    }
+
+    class Response {
+        +int StatusCode
+        +string Content
+        +string ContentType
+    }
+}
+
+package "Business Layer" {
+    class UserService {
+        +RegisterUser(username: string, password: string) : User
+        +LoginUser(username: string, password: string) : string
+        +ValidateToken(token: string) : bool
+        +GetUserFromToken(token: string) : User
+    }
+
+    class CardService {
+        +GetUserCards(user: User) : IReadOnlyList<Card>
+        +ConfigureDeck(user: User, cardIds: List<string>)
+        +GetUserDeck(user: User) : IReadOnlyList<Card>
+    }
+
+    class BattleService {
+        -BattleLogic _battleLogic
+        +ExecuteBattle(player1: User, player2: User) : string
+    }
+
+    class PackageService {
+        +CreatePackage(cardsJson: string, username: string)
+    }
+
+    class TradingService {
+        +CreateTrade(id: string, cardId: string, type: string, minimumDamage: int?, user: User)
+        +GetTrades() : List<Trading>
+        +ExecuteTrade(tradeId: string, offeredCardId: string, user: User)
+    }
+}
+
+package "Data Layer" {
+    class DataLayer {
+        -{static} DataLayer _instance
+        -NpgsqlDataSource _dataSource
+        +{static} Instance : DataLayer
+        +CreateConnection() : IDbConnection
+        +CreateCommand(commandText: string) : IDbCommand
+    }
+
+    interface IUserRepository {
+        +AddUser(user: User)
+        +GetUserByUsername(username: string) : User?
+        +GetUserById(id: int) : User?
+    }
+
+    interface ICardRepository {
+        +AddCard(card: Card, userId: int)
+        +GetCardById(id: string) : Card?
+        +GetCardsByUserId(userId: int) : List<Card>
+    }
+
+    class UserRepository {
+        +AddUser(user: User)
+        +GetUserByUsername(username: string) : User?
+        +UpdateUserData(user: User)
+    }
+
+    class CardRepository {
+        +AddCard(card: Card, userId: int)
+        +GetCardById(id: string) : Card?
+    }
+}
+
+HttpServer --> RequestProcessor
+RequestProcessor --> Router
+Router --> Handler
+Handler <|-- UserHandler
+Handler <|-- PackageHandler
+Handler <|-- CardHandler
+Handler <|-- TradingHandler
+Router --> BattleQueue
+
+UserHandler --> UserService
+CardHandler --> CardService
+PackageHandler --> PackageService
+TradingHandler --> TradingService
+
+UserService --> IUserRepository
+CardService --> ICardRepository
+IUserRepository <|.. UserRepository
+ICardRepository <|.. CardRepository
+
+UserRepository --> DataLayer
+CardRepository --> DataLayer
+
+@enduml
