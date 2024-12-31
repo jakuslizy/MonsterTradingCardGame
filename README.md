@@ -51,6 +51,9 @@ Cards are divided into two main categories:
 - Battle ends after maximum 100 rounds
 - Card ownership changes upon defeat
 
+
+![battlesequence](./MonsterTradingCardGame/ClassDiagram/png/BattleSequence.png)
+
 ### Trading System
 
 - Card trading marketplace

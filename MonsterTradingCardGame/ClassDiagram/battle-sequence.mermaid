@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant Client1 as Player 1
+    participant Client2 as Player 2
+    participant BH as BattleHandler
+    participant BQ as BattleQueue
+    participant BS as BattleService
+    participant BL as BattleLogic
+    participant CR as CardRepository
+    participant SR as StatsRepository
+
+    Client1->>BH: HandleBattle(user1)
+    BH->>BQ: GetWaitingPlayer()
+    BQ-->>BH: null
+    BH->>BQ: AddPlayer(user1)
+    BH-->>Client1: 202: Waiting for opponent
+
+    Client2->>BH: HandleBattle(user2)
+    BH->>BQ: GetWaitingPlayer()
+    BQ-->>BH: user1
+
+    Note over BH,BS: waitingPlayer = user1, user = user2
+    BH->>BS: ExecuteBattle(waitingPlayer, user)
+    BS->>CR: GetUserDeck(waitingPlayer.Id)
+    CR-->>BS: player1Deck
+    BS->>CR: GetUserDeck(user.Id)
+    CR-->>BS: player2Deck
+
+    loop For each round (max 100)
+        BS->>BS: Select random cards
+        BS->>BL: DetermineRoundWinner(card1, card2)
+        BL-->>BS: winner
+
+        alt player1 wins
+            BS->>CR: TransferCard(card2, user2.Id, user1.Id)
+        else player2 wins
+            BS->>CR: TransferCard(card1, user1.Id, user2.Id)
+        end
+    end
+
+    BS->>SR: GetStatsByUserId(winner.Id)
+    SR-->>BS: winnerStats
+    BS->>SR: GetStatsByUserId(loser.Id)
+    SR-->>BS: loserStats
+    BS->>SR: UpdateStats(winnerStats)
+    BS->>SR: UpdateStats(loserStats)
+
+    BS-->>BH: Battle log
+    BH->>BQ: RemovePlayer(waitingPlayer)
+    BH-->>Client2: 200: Battle Results
