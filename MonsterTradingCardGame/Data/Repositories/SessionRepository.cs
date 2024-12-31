@@ -1,9 +1,10 @@
 using System.Data;
 using MonsterTradingCardGame.API.Server.DTOs;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Data.Repositories;
 
-public class SessionRepository
+public class SessionRepository : ISessionRepository
 {
     private readonly DataLayer _dal = DataLayer.Instance;
 

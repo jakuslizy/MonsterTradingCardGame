@@ -1,13 +1,11 @@
-using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
 using System.Text.Json;
 using MonsterTradingCardGame.Business.Services.Interfaces;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services
 {
-    public class PackageService(
-        PackageRepository packageRepository,
-        ICardService cardService)
+    public class PackageService(IPackageRepository packageRepository, ICardService cardService)
         : IPackageService
     {
         public void CreatePackage(string cardDtosJson, string username)

@@ -1,14 +1,14 @@
 using MonsterTradingCardGame.Business.Logic;
 using MonsterTradingCardGame.Domain.Models;
 using System.Text;
-using MonsterTradingCardGame.Data.Repositories;
 using System.Data;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class BattleService(StatsRepository statsRepository, UserRepository userRepository)
+public class BattleService(IStatsRepository statsRepository, IUserRepository userRepository)
     : IBattleService
 {
     private readonly BattleLogic _battleLogic = new();

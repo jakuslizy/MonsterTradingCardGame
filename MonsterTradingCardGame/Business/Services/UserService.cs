@@ -1,14 +1,15 @@
 using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
 
 namespace MonsterTradingCardGame.Business.Services;
 
 public class UserService(
-    UserRepository userRepository,
-    SessionRepository sessionRepository,
-    StatsRepository statsRepository)
+    IUserRepository userRepository,
+    ISessionRepository sessionRepository,
+    IStatsRepository statsRepository)
     : IUserService
 {
     public User RegisterUser(string username, string password)

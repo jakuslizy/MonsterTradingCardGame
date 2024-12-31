@@ -251,7 +251,7 @@ public class UserRepository(ICardRepository cardRepository) : IUserRepository
         return reader.Read() ? MapUserFromReader(reader) : null;
     }
 
-    private User MapUserFromReader(IDataReader reader)
+    public User MapUserFromReader(IDataReader reader)
     {
         return new User(
             id: reader.GetInt32(reader.GetOrdinal("id")),

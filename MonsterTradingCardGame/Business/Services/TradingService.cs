@@ -1,10 +1,10 @@
-using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Business.Services.Interfaces;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class TradingService(TradingRepository tradingRepository, CardRepository cardRepository)
+public class TradingService(ITradingRepository tradingRepository, ICardRepository cardRepository)
     : ITradingService
 {
     public void CreateTrade(string id, string cardId, string type, int? minimumDamage, User user)
