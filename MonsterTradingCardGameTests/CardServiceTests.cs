@@ -6,6 +6,7 @@ using NSubstitute;
 
 namespace MonsterTradingCardGameTests;
 
+[TestFixture]
 public class CardServiceTests
 {
     private IUserRepository _userRepository;
@@ -93,5 +94,38 @@ public class CardServiceTests
             () => _cardService.ConfigureDeck(_testUser, invalidCardIds)
         );
         Assert.That(exception.Message, Does.Contain("nicht im Stack des Users gefunden"));
+    }
+
+    [Test]
+    public void ConfigureDeck_WithMoreThan4Cards_ThrowsException()
+    {
+        // Arrange
+        var userCards = new List<Card>
+        {
+            new Dragon("1", "Dragon", 10, ElementType.Fire),
+            new Goblin("2", "Goblin", 20, ElementType.Water),
+            new Knight("3", "Knight", 30, ElementType.Normal),
+            new SpellCard("4", "FireSpell", 40, ElementType.Fire),
+            new SpellCard("5", "WaterSpell", 50, ElementType.Water)
+        };
+
+        var invalidDeckSelection = new List<string> { "1", "2", "3", "4", "5" };
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() => 
+            _cardService.ConfigureDeck(_testUser, invalidDeckSelection));
+    }
+
+    [Test]
+    public void GetUserDeck_WithEmptyDeck_ReturnsEmptyList()
+    {
+        // Arrange
+        _userRepository.GetUserDeck(_testUser.Id).Returns(new List<Card>());
+
+        // Act
+        var result = _cardService.GetUserDeck(_testUser);
+
+        // Assert
+        Assert.That(result, Is.Empty);
     }
 }

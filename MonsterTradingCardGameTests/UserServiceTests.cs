@@ -5,7 +5,7 @@ using NSubstitute;
 
 namespace MonsterTradingCardGameTests;
 
-
+[TestFixture]
 public class UserServiceTests
 {
     private IUserRepository _userRepository;

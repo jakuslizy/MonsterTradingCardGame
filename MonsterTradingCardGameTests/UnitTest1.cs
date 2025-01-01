@@ -5,6 +5,7 @@ using NSubstitute;
 
 namespace MonsterTradingCardGameTests;
 
+[TestFixture]
 public class Tests
 {
     private Router _router;

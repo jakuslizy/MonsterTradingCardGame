@@ -19,6 +19,11 @@ namespace MonsterTradingCardGame.Business.Services
             var cardsData = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(cardDtosJson)
                             ?? throw new ArgumentException("Invalid card data");
 
+            if (cardsData.Count != 5)
+            {
+                throw new ArgumentException("Package must contain exactly 5 cards");
+            }
+
             var cards = new List<Card>();
             foreach (var cardData in cardsData)
             {
