@@ -1,3 +1,5 @@
+namespace MonsterTradingCardGame.Domain.Models;
+
 public class Trading
 {
     public string Id { get; }
@@ -14,4 +16,4 @@ public class Trading
         MinimumDamage = minimumDamage;
         UserId = userId;
     }
-} 
+}

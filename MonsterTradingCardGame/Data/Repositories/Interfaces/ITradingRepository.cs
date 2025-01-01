@@ -1,3 +1,5 @@
+using MonsterTradingCardGame.Domain.Models;
+
 namespace MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 public interface ITradingRepository

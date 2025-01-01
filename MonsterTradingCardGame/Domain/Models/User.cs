@@ -11,10 +11,10 @@ public class User
     public string? Image { get; set; }
 
     public User(
-        string username, 
-        string passwordHash, 
-        int id = 0, 
-        DateTime? createdAt = null, 
+        string username,
+        string passwordHash,
+        int id = 0,
+        DateTime? createdAt = null,
         int coins = 20)
     {
         Id = id;
