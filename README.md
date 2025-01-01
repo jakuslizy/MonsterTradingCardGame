@@ -164,9 +164,9 @@ CREATE TABLE cards (
 CREATE TABLE packages (
     id           integer PRIMARY KEY,
     price        integer DEFAULT 5,
-    user_id      integer,
+    purchased_by      integer,
     created_at   timestamp DEFAULT CURRENT_TIMESTAMP,
-    acquired_at  timestamp
+    purchased_at  timestamp
 );
 ```
 
