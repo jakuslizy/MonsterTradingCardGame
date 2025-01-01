@@ -59,79 +59,61 @@ namespace MonsterTradingCardGame.Data.Repositories
         {
             using var connection = _dal.CreateConnection();
             using var command = connection.CreateCommand();
-            using var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            command.CommandText = @"
+        SELECT p.id, c.id as card_id, c.name, c.damage, c.element_type
+        FROM packages p
+        JOIN cards c ON c.package_id = p.id
+        WHERE p.purchased_by IS NULL
+        LIMIT 5";
 
-            try
+            var package = new Package();
+            using var reader = command.ExecuteReader();
+            bool hasRows = false;
+
+            while (reader.Read())
             {
-                var package = new Package();
-                var hasCards = false;
-
-                command.Connection = connection;
-                command.Transaction = transaction;
-                command.CommandText = @"
-            WITH first_available_package AS (
-                SELECT id 
-                FROM packages 
-                WHERE id IN (
-                    SELECT DISTINCT package_id 
-                    FROM cards 
-                    WHERE user_id IS NULL
-                )
-                ORDER BY id
-                LIMIT 1
-                FOR UPDATE
-            )
-            SELECT c.id, c.name, c.damage, c.element_type
-            FROM cards c
-            JOIN first_available_package p ON c.package_id = p.id
-            WHERE c.user_id IS NULL
-            ORDER BY c.id";
-
-                using (var reader = command.ExecuteReader())
+                hasRows = true;
+                if (package.Id == 0)
                 {
-                    while (reader.Read())
-                    {
-                        hasCards = true;
-                        var cardId = reader.GetString(reader.GetOrdinal("id"));
-                        var name = reader.GetString(reader.GetOrdinal("name"));
-                        var damage = reader.GetInt32(reader.GetOrdinal("damage"));
-                        var elementType = Enum.Parse<ElementType>(
-                            reader.GetString(reader.GetOrdinal("element_type")));
-
-                        var card = cardService.CreateCard(cardId, name, damage, elementType);
-                        if (card != null)
-                        {
-                            package.AddCard(card);
-                        }
-                    }
+                    package.Id = reader.GetInt32(0);
                 }
-
-                if (hasCards)
+                var card = cardService.CreateCard(
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetInt32(3),
+                    Enum.Parse<ElementType>(reader.GetString(4))
+                );
+                if (card != null)
                 {
-                    command.CommandText = @"
-                UPDATE cards 
-                SET user_id = @userId 
-                WHERE id = ANY(@cardIds)";
-
-                    command.Parameters.Clear();
-                    DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = "@cardIds";
-                    parameter.Value = package.GetCards().Select(c => c.Id).ToArray();
-                    ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text;
-                    command.Parameters.Add(parameter);
-
-                    command.ExecuteNonQuery();
-                    transaction.Commit();
-                    return package;
+                    package.AddCard(card);
                 }
-
-                transaction.Commit();
-                return null;
             }
-            catch
+
+            return hasRows ? package : null;
+        }
+
+        public void UpdatePackageOwner(int packageId, int userId)
+        {
+            try 
             {
-                transaction.Rollback();
+                using var command = _dal.CreateCommand(@"
+                    UPDATE packages 
+                    SET purchased_by = @userId,
+                        purchased_at = CURRENT_TIMESTAMP 
+                    WHERE id = @packageId");
+                
+                DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
+                DataLayer.AddParameterWithValue(command, "@packageId", DbType.Int32, packageId);
+                
+                var rowsAffected = command.ExecuteNonQuery();
+                if (rowsAffected == 0)
+                {
+                    throw new InvalidOperationException($"Package with ID {packageId} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating package owner: {ex.Message}");
                 throw;
             }
         }
