@@ -12,6 +12,7 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
     : IBattleService
 {
     private readonly BattleLogic _battleLogic = new();
+    private readonly Random _random = new();
 
     public string ExecuteBattle(User player1, User player2)
     {
@@ -40,9 +41,8 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
         while (rounds < 100 && player1Deck.Count > 0 && player2Deck.Count > 0)
         {
             rounds++;
-            var random = new Random();
-            var card1 = player1Deck[random.Next(player1Deck.Count)];
-            var card2 = player2Deck[random.Next(player2Deck.Count)];
+            var card1 = player1Deck[_random.Next(player1Deck.Count)];
+            var card2 = player2Deck[_random.Next(player2Deck.Count)];
 
             log.AppendLine($"Round {rounds}:");
             log.AppendLine($"{player1.Username}'s {card1.Name} ({card1.ElementType}, {card1.Damage} Damage) vs");
