@@ -3,7 +3,8 @@ using MonsterTradingCardGame.Domain.Models;
 namespace MonsterTradingCardGame.Business.Logic;
 
 public class BattleLogic
-{public int DetermineRoundWinner(Card card1, Card card2)
+{
+    public int DetermineRoundWinner(Card card1, Card card2)
     {
         // Regel 1: Goblin vs Dragon - Goblin verliert immer
         if (card1.Name.Contains("Goblin") && card2.Name.Contains("Dragon"))
@@ -56,17 +57,17 @@ public class BattleLogic
         if (attackerCard is SpellCard || defenderCard is SpellCard)
         {
             if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Fire)
-                damage *= 2;  // Wasser effektiv gegen Feuer
+                damage *= 2; // Wasser effektiv gegen Feuer
             else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Normal)
-                damage *= 2;  // Feuer effektiv gegen Normal
+                damage *= 2; // Feuer effektiv gegen Normal
             else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Water)
-                damage *= 2;  // Normal effektiv gegen Wasser
+                damage *= 2; // Normal effektiv gegen Wasser
             else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Water)
-                damage /= 2;  // Feuer ineffektiv gegen Wasser
+                damage /= 2; // Feuer ineffektiv gegen Wasser
             else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Fire)
-                damage /= 2;  // Normal ineffektiv gegen Feuer
+                damage /= 2; // Normal ineffektiv gegen Feuer
             else if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Normal)
-                damage /= 2;  // Wasser ineffektiv gegen Normal
+                damage /= 2; // Wasser ineffektiv gegen Normal
         }
 
         return damage;

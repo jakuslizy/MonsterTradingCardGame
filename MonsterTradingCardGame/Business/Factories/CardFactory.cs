@@ -1,4 +1,5 @@
 namespace MonsterTradingCardGame.Business.Factories;
+
 using Domain.Models;
 using Domain.Models.MonsterCards;
 
@@ -9,13 +10,13 @@ public static class CardFactory
         // Element aus dem Namen extrahieren
         if (name.StartsWith("Water")) elementType = ElementType.Water;
         if (name.StartsWith("Fire")) elementType = ElementType.Fire;
-        
+
         // Kartentyp aus dem Namen extrahieren
         if (name.EndsWith("Spell"))
         {
             return new SpellCard(id, name, damage, elementType);
         }
-        
+
         // Monster-Karten
         return name switch
         {
@@ -29,4 +30,4 @@ public static class CardFactory
             _ => null
         };
     }
-} 
+}

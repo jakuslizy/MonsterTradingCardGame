@@ -5,7 +5,7 @@ namespace MonsterTradingCardGame.Data;
 
 public class DataLayer : IDisposable
 {
-    private static readonly object _lock = new object();
+    private static readonly object Lock = new object();
     private static DataLayer? _instance;
     private readonly NpgsqlDataSource _dataSource;
 
@@ -15,7 +15,7 @@ public class DataLayer : IDisposable
         {
             if (_instance == null)
             {
-                lock (_lock)
+                lock (Lock)
                 {
                     _instance ??= new DataLayer(
                         "Host=localhost;" +

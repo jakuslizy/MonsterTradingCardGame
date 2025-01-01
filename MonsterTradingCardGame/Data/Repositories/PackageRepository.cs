@@ -2,8 +2,6 @@ using System.Data;
 using MonsterTradingCardGame.Domain.Models;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
-using Npgsql;
-using NpgsqlTypes;
 
 namespace MonsterTradingCardGame.Data.Repositories
 {
@@ -77,6 +75,7 @@ namespace MonsterTradingCardGame.Data.Repositories
                 {
                     package.Id = reader.GetInt32(0);
                 }
+
                 var card = cardService.CreateCard(
                     reader.GetString(1),
                     reader.GetString(2),
@@ -94,17 +93,17 @@ namespace MonsterTradingCardGame.Data.Repositories
 
         public void UpdatePackageOwner(int packageId, int userId)
         {
-            try 
+            try
             {
                 using var command = _dal.CreateCommand(@"
                     UPDATE packages 
                     SET purchased_by = @userId,
                         purchased_at = CURRENT_TIMESTAMP 
                     WHERE id = @packageId");
-                
+
                 DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
                 DataLayer.AddParameterWithValue(command, "@packageId", DbType.Int32, packageId);
-                
+
                 var rowsAffected = command.ExecuteNonQuery();
                 if (rowsAffected == 0)
                 {

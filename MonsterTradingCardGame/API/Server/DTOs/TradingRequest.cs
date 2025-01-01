@@ -6,4 +6,4 @@ public class TradingRequest
     public string CardToTrade { get; set; } = "";
     public string Type { get; set; } = "";
     public int? MinimumDamage { get; set; }
-} 
+}

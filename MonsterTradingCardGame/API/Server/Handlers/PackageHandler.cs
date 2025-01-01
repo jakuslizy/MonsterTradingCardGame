@@ -1,7 +1,5 @@
 using MonsterTradingCardGame.API.Server.DTOs;
-using MonsterTradingCardGame.Business.Services;
 using MonsterTradingCardGame.Business.Services.Interfaces;
-using MonsterTradingCardGame.Data.Repositories;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
 
@@ -53,7 +51,7 @@ namespace MonsterTradingCardGame.API.Server.Handlers
                 // Direkt in der DB aktualisieren
                 userRepository.UpdateUserCoins(user.Id, currentCoins - Package.PackagePrice);
                 userRepository.SaveUserCards(user.Id, package.GetCards().ToList());
-                
+
                 // Paket als gekauft markieren
                 packageRepository.UpdatePackageOwner(package.Id, user.Id);
 
