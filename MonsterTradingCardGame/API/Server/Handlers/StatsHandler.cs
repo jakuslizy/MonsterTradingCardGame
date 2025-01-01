@@ -43,16 +43,17 @@ public class StatsHandler(
         try
         {
             var scoreboard = statsRepository.GetAllStats()
-                .OrderByDescending(s => s.Elo)
+                .Where(stats => userRepository.GetUserById(stats.UserId)?.Username != "admin")
+                .OrderByDescending(stats => stats.Elo)
                 .Select((stats, index) =>
                 {
                     var user = userRepository.GetUserById(stats.UserId);
-                    string rank = (index + 1) switch
+                    var rank = index switch
                     {
-                        1 => " 1st Place",
-                        2 => " 2nd Place",
-                        3 => " 3rd Place",
-                        _ => $"#{index + 1}"
+                        0 => " 1st Place",
+                        1 => " 2nd Place",
+                        2 => " 3rd Place",
+                        _ => $"{index + 1}th Place"
                     };
 
                     return new
