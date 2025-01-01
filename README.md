@@ -242,11 +242,19 @@ CREATE DATABASE mydb;
 4. Run the `Program.cs` file in the `Presentation.Console` namespace
 
 ### Testing
-1. Run the Unit Tests in the `MonsterTradingCardGame.Tests` project
-2. Test the API endpoints:
-   - Use the provided curl scripts in `MonsterTradingCards.sh`
-   - The custom rest-client.http file 
-   - Or use the Postman collection/rest-client.http file
+1. Run the Unit Tests:
+   ```bash
+   dotnet test MonsterTradingCardGameTests
+   ```
+
+2. Test the API endpoints using one of these methods:
+   - Execute the test script:
+     ```bash
+     ./MonsterTradingCards.sh
+     ```
+   - Use the REST Client in Visual Studio Code:
+     - Open `rest-client.http`
+     - Click "Send Request" above each request
 
 ### Troubleshooting
 - Make sure PostgreSQL is running
