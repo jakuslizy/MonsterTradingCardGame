@@ -24,8 +24,8 @@ POST {{baseUrl}}/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "Username": "Mickey",
-  "Password": "Mouse123"
+  "Username": "gurami",
+  "Password": "honiggurami"
 }
 
 ### 2. User Login
@@ -52,8 +52,8 @@ POST {{baseUrl}}/sessions HTTP/1.1
 Content-Type: application/json
 
 {
-  "Username": "Mickey",
-  "Password": "Mouse123"
+  "Username": "gurami",
+  "Password": "honiggurami"
 }
 
 ### 3. Admin erstellt alle Pakete
@@ -119,11 +119,11 @@ Authorization: Bearer Pluto-mtcgToken
 
 ### 5. Mickey kauft seine Pakete (3 und 4)
 POST {{baseUrl}}/transactions/packages HTTP/1.1
-Authorization: Bearer Mickey-mtcgToken
+Authorization: Bearer gurami-mtcgToken
 
 ### Mickey kauft zweites Paket
 POST {{baseUrl}}/transactions/packages HTTP/1.1
-Authorization: Bearer Mickey-mtcgToken
+Authorization: Bearer gurami-mtcgToken
 
 ### 6. Pluto konfiguriert sein Deck
 PUT {{baseUrl}}/deck HTTP/1.1
@@ -140,7 +140,7 @@ Authorization: Bearer Pluto-mtcgToken
 ### 7. Mickey konfiguriert sein Deck
 PUT {{baseUrl}}/deck HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer Mickey-mtcgToken
+Authorization: Bearer gurami-mtcgToken
 
 [
   "b017ee50-1c14-44e2-bfd6-2c0c5653a37c",
@@ -161,12 +161,12 @@ Authorization: Bearer Pluto-mtcgToken
 }
 
 ### 9. Mickey aktualisiert sein Profil
-PUT {{baseUrl}}/users/Mickey HTTP/1.1
+PUT {{baseUrl}}/users/gurami HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer Mickey-mtcgToken
+Authorization: Bearer gurami-mtcgToken
 
 {
-  "Name": "Mickey Mouse",
+  "Name": "Honig Gurami",
   "Bio": "Ready to battle!",
   "Image": ">:)"
 }
@@ -195,4 +195,4 @@ Authorization: Bearer Pluto-mtcgToken
 
 ### Mickey startet Battle
 POST {{baseUrl}}/battles HTTP/1.1
-Authorization: Bearer Mickey-mtcgToken
+Authorization: Bearer gurami-mtcgToken
