@@ -10,6 +10,9 @@ namespace MonsterTradingCardGame.Presentation.Console;
 
 public class Program
 {
+    private static HttpServer? _server;
+    private static Thread? _serverThread;
+    
     public static void Main(string[] args)
     {
         try
@@ -54,14 +57,14 @@ public class Program
 
             var requestProcessor = new RequestProcessor(router);
             var tcpListener = new TcpListener(IPAddress.Any, port);
-            var server = new HttpServer(port, requestProcessor, tcpListener);
+            _server = new HttpServer(port, requestProcessor, tcpListener);
 
             // Server in einem separaten Thread starten
-            var serverThread = new Thread(() =>
+            _serverThread = new Thread(() =>
             {
                 try
                 {
-                    server.Start();
+                    _server.Start();
                     System.Console.WriteLine($"Server läuft unter: http://localhost:{port}");
                 }
                 catch (Exception ex)
@@ -69,18 +72,34 @@ public class Program
                     System.Console.WriteLine($"Serverfehler: {ex.Message}");
                 }
             });
-            serverThread.Start();
+            _serverThread.Start();
 
             // Datenbankverbindung testen
             TestDatabaseConnection();
 
             System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
             System.Console.ReadKey();
+            
+            // Server ordnungsgemäß beenden
+            _server.Stop();
+            _serverThread.Join(); // Warten bis der Server-Thread beendet ist
         }
         catch (Exception ex)
         {
             System.Console.WriteLine($"Kritischer Fehler: {ex.Message}");
             System.Console.WriteLine(ex.StackTrace);
+        }
+        finally
+        {
+            // Sicherstellen, dass der Server in jedem Fall beendet wird
+            if (_server != null)
+            {
+                _server.Stop();
+            }
+            if (_serverThread != null && _serverThread.IsAlive)
+            {
+                _serverThread.Join();
+            }
         }
     }
 

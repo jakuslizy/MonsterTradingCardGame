@@ -19,9 +19,9 @@ public class BattleLogic
             return 2; // Wizard gewinnt
 
         // Regel 3: Knight vs WaterSpell - Knight ertrinkt
-        if (card1.Name.Contains("Knight") && card2 is SpellCard spell2 && spell2.ElementType == ElementType.Water)
+        if (card1.Name.Contains("Knight") && card2 is SpellCard { ElementType: ElementType.Water })
             return 2; // WaterSpell gewinnt
-        if (card2.Name.Contains("Knight") && card1 is SpellCard spell1 && spell1.ElementType == ElementType.Water)
+        if (card2.Name.Contains("Knight") && card1 is SpellCard { ElementType: ElementType.Water })
             return 1; // WaterSpell gewinnt
 
         // Regel 4: Kraken ist immun gegen Spells
@@ -45,8 +45,23 @@ public class BattleLogic
         return 0; // Unentschieden
     }
 
-    public int CalculateDamage(Card attackerCard, Card defenderCard)
+    private double GetElementalMultiplier(ElementType attacker, ElementType defender) 
     {
+        return (attacker, defender) switch 
+        {
+            (ElementType.Water, ElementType.Fire) => 2.0,
+            (ElementType.Fire, ElementType.Normal) => 2.0,
+            (ElementType.Normal, ElementType.Water) => 2.0,
+            (ElementType.Fire, ElementType.Water) => 0.5,
+            (ElementType.Normal, ElementType.Fire) => 0.5,
+            (ElementType.Water, ElementType.Normal) => 0.5,
+            _ => 1.0
+        };
+    }
+
+    private int CalculateDamage(Card attackerCard, Card defenderCard)
+    {
+        // Basis Schaden
         int damage = attackerCard.Damage;
 
         // Bei reinen Monster-Kämpfen keine Element-Modifikation
@@ -56,18 +71,8 @@ public class BattleLogic
         // Wenn mindestens eine Spell-Karte beteiligt ist
         if (attackerCard is SpellCard || defenderCard is SpellCard)
         {
-            if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Fire)
-                damage *= 2; // Wasser effektiv gegen Feuer
-            else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Normal)
-                damage *= 2; // Feuer effektiv gegen Normal
-            else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Water)
-                damage *= 2; // Normal effektiv gegen Wasser
-            else if (attackerCard.ElementType == ElementType.Fire && defenderCard.ElementType == ElementType.Water)
-                damage /= 2; // Feuer ineffektiv gegen Wasser
-            else if (attackerCard.ElementType == ElementType.Normal && defenderCard.ElementType == ElementType.Fire)
-                damage /= 2; // Normal ineffektiv gegen Feuer
-            else if (attackerCard.ElementType == ElementType.Water && defenderCard.ElementType == ElementType.Normal)
-                damage /= 2; // Wasser ineffektiv gegen Normal
+            double multiplier = GetElementalMultiplier(attackerCard.ElementType, defenderCard.ElementType);
+            damage = (int)(damage * multiplier);
         }
 
         return damage;
