@@ -245,6 +245,7 @@ CREATE DATABASE mydb;
 1. Run the Unit Tests in the `MonsterTradingCardGame.Tests` project
 2. Test the API endpoints:
    - Use the provided curl scripts in `MonsterTradingCards.sh`
+   - The custom rest-client.http file 
    - Or use the Postman collection/rest-client.http file
 
 ### Troubleshooting
