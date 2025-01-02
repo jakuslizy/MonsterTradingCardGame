@@ -1,5 +1,7 @@
 # Monster Trading Card Game
 
+![MTCG Logo](./MonsterTradingCardGame/Assets/0_0.png)
+
 ## Overview
 
 This project is the final version of the Monster Trading Card Game, a server-based card trading and battling game implemented in C#. The project features a fully functional HTTP server with complete implementation of user management, card trading, deck building, and battle mechanics. Using a custom REST API and PostgreSQL database, players can engage in strategic card battles, trade cards with other players, and compete in an ELO-based ranking system.
