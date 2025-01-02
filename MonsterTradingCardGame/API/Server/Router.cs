@@ -65,8 +65,22 @@ namespace MonsterTradingCardGame.API.Server
                 return _userHandler.LoginUser(new Request { Body = body, Path = "/sessions", Method = "POST" });
 
             if (method == "GET" && path == "/")
-                return new Response(200, "<html><body><h1>Willkommen beim Monster Trading Card Game</h1></body></html>",
+            {
+                // Bild in Base64 konvertieren
+                string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "0_0.png");
+                string imageBase64 = Convert.ToBase64String(File.ReadAllBytes(imagePath));
+                
+                return new Response(200, $@"
+                    <html>
+                    <body style='text-align: center; font-family: Arial; background-color: #f0f0f0;'>
+                        <h1 style='color: #333;'>Willkommen beim Monster Trading Card Game</h1>
+                        <img src='data:image/png;base64,{imageBase64}' 
+                             alt='MTCG Logo' 
+                             style='max-width: 500px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>
+                    </body>
+                    </html>",
                     "text/html");
+            }
 
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);

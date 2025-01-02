@@ -17,9 +17,6 @@ public class Program
     {
         try
         {
-            // Repositories initialisieren
-
-
             // Services und Repositories mit korrekter Reihenfolge
             var cardRepository = new CardRepository();
             var userRepository = new UserRepository(cardRepository);
@@ -41,6 +38,7 @@ public class Program
             var battleQueue = new BattleQueue();
             var tradingRepository = new TradingRepository();
             var tradingService = new TradingService(tradingRepository, cardRepository);
+            
             // Server-Komponenten initialisieren
             const int port = 10001;
             var router = new Router(

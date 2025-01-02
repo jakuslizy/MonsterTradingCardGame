@@ -7,25 +7,16 @@ public enum ElementType
     Water
 }
 
-public abstract class Card
+public abstract class Card(string id, string name, int damage, ElementType elementType)
 {
     private static readonly Random Random = new();
 
-    public string Id { get; }
-    public string Name { get; }
-    public int Damage { get; }
-    public ElementType ElementType { get; }
+    public string Id { get; } = id;
+    public string Name { get; } = name;
+    public int Damage { get; } = damage;
+    public ElementType ElementType { get; } = elementType;
     public int UserId { get; set; }
-    public bool InDeck { get; set; }
-
-    protected Card(string id, string name, int damage, ElementType elementType)
-    {
-        Id = id;
-        Name = name;
-        Damage = damage;
-        ElementType = elementType;
-        InDeck = false;
-    }
+    public bool InDeck { get; set; } = false;
 
     public virtual int GetDamageWithCritical()
     {

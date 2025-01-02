@@ -61,7 +61,7 @@ public class TradingService(ITradingRepository tradingRepository, ICardRepositor
             throw new InvalidOperationException("Cannot trade with yourself");
         }
 
-        // Prüfe ob die angebotene Karte dem User gehört
+        // Prüfen, ob die angebotene Karte dem User gehört
         var offeredCard = cardRepository.GetCardById(offeredCardId);
         if (offeredCard == null || offeredCard.UserId != Convert.ToInt32(user.Id))
         {
