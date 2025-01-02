@@ -4,39 +4,54 @@ namespace MonsterTradingCardGame.Business.Logic;
 
 public class BattleLogic
 {
+    public int CalculateDamage(Card attackerCard, Card defenderCard)
+    {
+        // Basis-Schaden berechnen (mit möglichem kritischen Treffer)
+        int damage = attackerCard.GetDamageWithCritical();
+
+        // Bei reinen Monster-Kämpfen keine Element-Modifikation
+        if (attackerCard is MonsterCard && defenderCard is MonsterCard)
+            return damage;
+
+        // Element-Effektivität bei Spell-Karten
+        if (attackerCard is SpellCard || defenderCard is SpellCard)
+        {
+            double multiplier = GetElementalMultiplier(attackerCard.ElementType, defenderCard.ElementType);
+            damage = (int)(damage * multiplier);
+        }
+
+        return damage;
+    }
+
     public int DetermineRoundWinner(Card card1, Card card2)
     {
-        // Regel 1: Goblin vs Dragon - Goblin verliert immer
+        // Spezialregeln prüfen
         if (card1.Name.Contains("Goblin") && card2.Name.Contains("Dragon"))
-            return 2; // Dragon (card2) gewinnt
+            return 2; // Dragon gewinnt automatisch
         if (card2.Name.Contains("Goblin") && card1.Name.Contains("Dragon"))
-            return 1; // Dragon (card1) gewinnt
+            return 1; // Dragon gewinnt automatisch
 
-        // Regel 2: Wizard kontrolliert Ork
         if (card1.Name.Contains("Wizzard") && card2.Name.Contains("Ork"))
-            return 1; // Wizard gewinnt
+            return 1; // Wizard kontrolliert Ork
         if (card2.Name.Contains("Wizzard") && card1.Name.Contains("Ork"))
-            return 2; // Wizard gewinnt
+            return 2; // Wizard kontrolliert Ork
 
-        // Regel 3: Knight vs WaterSpell - Knight ertrinkt
         if (card1.Name.Contains("Knight") && card2 is SpellCard { ElementType: ElementType.Water })
-            return 2; // WaterSpell gewinnt
+            return 2; // WaterSpell ertränkt Knight
         if (card2.Name.Contains("Knight") && card1 is SpellCard { ElementType: ElementType.Water })
-            return 1; // WaterSpell gewinnt
+            return 1; // WaterSpell ertränkt Knight
 
-        // Regel 4: Kraken ist immun gegen Spells
         if (card1.Name.Contains("Kraken") && card2 is SpellCard)
-            return 1; // Kraken gewinnt
+            return 1; // Kraken ist immun gegen Spells
         if (card2.Name.Contains("Kraken") && card1 is SpellCard)
-            return 2; // Kraken gewinnt
+            return 2; // Kraken ist immun gegen Spells
 
-        // Regel 5: FireElf weicht Dragon aus
         if (card1.Name.Contains("FireElf") && card2.Name.Contains("Dragon"))
-            return card1.Damage > 0 ? 1 : 0; // FireElf gewinnt wenn Schaden > 0
+            return 1; // FireElf weicht Dragon aus
         if (card2.Name.Contains("FireElf") && card1.Name.Contains("Dragon"))
-            return card2.Damage > 0 ? 2 : 0; // FireElf gewinnt wenn Schaden > 0
+            return 2; // FireElf weicht Dragon aus
 
-        // Normale Schadensberechnung
+        // Normaler Schadenvergleich mit kritischen Treffern
         int damage1 = CalculateDamage(card1, card2);
         int damage2 = CalculateDamage(card2, card1);
 
@@ -49,32 +64,13 @@ public class BattleLogic
     {
         return (attacker, defender) switch
         {
-            (ElementType.Water, ElementType.Fire) => 2.0,
-            (ElementType.Fire, ElementType.Normal) => 2.0,
-            (ElementType.Normal, ElementType.Water) => 2.0,
-            (ElementType.Fire, ElementType.Water) => 0.5,
-            (ElementType.Normal, ElementType.Fire) => 0.5,
-            (ElementType.Water, ElementType.Normal) => 0.5,
-            _ => 1.0
+            (ElementType.Water, ElementType.Fire) => 2.0, // Wasser ist effektiv gegen Feuer
+            (ElementType.Fire, ElementType.Normal) => 2.0, // Feuer ist effektiv gegen Normal
+            (ElementType.Normal, ElementType.Water) => 2.0, // Normal ist effektiv gegen Wasser
+            (ElementType.Fire, ElementType.Water) => 0.5, // Feuer ist schwach gegen Wasser
+            (ElementType.Normal, ElementType.Fire) => 0.5, // Normal ist schwach gegen Feuer
+            (ElementType.Water, ElementType.Normal) => 0.5, // Wasser ist schwach gegen Normal
+            _ => 1.0 // Keine spezielle Effektivität
         };
-    }
-
-    private int CalculateDamage(Card attackerCard, Card defenderCard)
-    {
-        // Basis Schaden
-        int damage = attackerCard.Damage;
-
-        // Bei reinen Monster-Kämpfen keine Element-Modifikation
-        if (attackerCard is MonsterCard && defenderCard is MonsterCard)
-            return damage;
-
-        // Wenn mindestens eine Spell-Karte beteiligt ist
-        if (attackerCard is SpellCard || defenderCard is SpellCard)
-        {
-            double multiplier = GetElementalMultiplier(attackerCard.ElementType, defenderCard.ElementType);
-            damage = (int)(damage * multiplier);
-        }
-
-        return damage;
     }
 }

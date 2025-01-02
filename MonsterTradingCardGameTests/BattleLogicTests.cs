@@ -256,4 +256,44 @@ public class BattleLogicTests
         TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
         Assert.That(result, Is.EqualTo(1));
     }
+
+    [Test]
+    public void CalculateDamage_CriticalHitTest()
+    {
+        var card1 = new Dragon("1", "TestDragon", 50, ElementType.Fire);
+        var card2 = new Goblin("2", "TestGoblin", 50, ElementType.Normal);
+
+        var results = new Dictionary<int, int>(); // Damage -> Häufigkeit
+        const int iterations = 10000; // Mehr Iterationen für bessere Statistik
+
+        // Sammle Ergebnisse
+        for (int i = 0; i < iterations; i++)
+        {
+            var damage = _battleLogic.CalculateDamage(card1, card2);
+            if (!results.ContainsKey(damage))
+                results[damage] = 0;
+            results[damage]++;
+        }
+
+        // Analyse der Ergebnisse
+        TestContext.WriteLine("\nSchadensverteilung:");
+        foreach (var kvp in results.OrderBy(x => x.Key))
+        {
+            double percentage = (double)kvp.Value / iterations * 100;
+            TestContext.WriteLine($"Schaden {kvp.Key}: {kvp.Value} mal ({percentage:F1}%)");
+        }
+
+        int criticalDamage = results.ContainsKey(100) ? results[100] : 0;
+        double criticalPercentage = (double)criticalDamage / iterations * 100;
+
+        TestContext.WriteLine($"\nKritische Treffer: {criticalPercentage:F1}%");
+
+        // Überprüfen, ob die Verteilung ungefähr stimmt (10% ±2%)
+        Assert.That(criticalPercentage, Is.InRange(8, 12),
+            "Kritische Treffer sollten bei etwa 10% liegen");
+
+        // Prüfen, ob es nur die erwarteten Schadenswerte gibt
+        Assert.That(results.Keys, Is.EquivalentTo(new[] { 50, 100 }),
+            "Es sollte nur normale (50) und kritische (100) Treffer geben");
+    }
 }

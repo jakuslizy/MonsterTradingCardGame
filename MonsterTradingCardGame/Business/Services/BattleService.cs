@@ -22,15 +22,12 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
             throw new InvalidOperationException("Cannot battle against yourself");
         }
 
-        // Lade die aktuellen Decks aus der Datenbank
         var player1Deck = userRepository.GetUserDeck(player1.Id);
         var player2Deck = userRepository.GetUserDeck(player2.Id);
 
-        // Validierung der Decks
         if (player1Deck.Count != 4 || player2Deck.Count != 4)
         {
-            throw new InvalidOperationException(
-                $"Both players must have exactly 4 cards in their deck. Player1: {player1Deck.Count}, Player2: {player2Deck.Count}");
+            throw new InvalidOperationException($"Both players must have exactly 4 cards in their deck");
         }
 
         var log = new StringBuilder();
@@ -45,8 +42,16 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
             var card2 = player2Deck[_random.Next(player2Deck.Count)];
 
             log.AppendLine($"Round {rounds}:");
-            log.AppendLine($"{player1.Username}'s {card1.Name} ({card1.ElementType}, {card1.Damage} Damage) vs");
-            log.AppendLine($"{player2.Username}'s {card2.Name} ({card2.ElementType}, {card2.Damage} Damage)");
+
+            // Berechne Schaden und prüfe auf kritische Treffer
+            var damage1 = _battleLogic.CalculateDamage(card1, card2);
+            var damage2 = _battleLogic.CalculateDamage(card2, card1);
+
+            // Zeige die Basis-Karten und deren tatsächlichen Schaden
+            log.AppendLine(
+                $"{player1.Username}'s {card1.Name} ({card1.ElementType}, Base Damage: {card1.Damage}, Effective Damage: {damage1}{(damage1 > card1.Damage ? " [CRITICAL HIT!]" : "")}) vs");
+            log.AppendLine(
+                $"{player2.Username}'s {card2.Name} ({card2.ElementType}, Base Damage: {card2.Damage}, Effective Damage: {damage2}{(damage2 > card2.Damage ? " [CRITICAL HIT!]" : "")})");
 
             var winner = _battleLogic.DetermineRoundWinner(card1, card2);
 
@@ -65,12 +70,11 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
                     player2Deck.Add(card1);
                     break;
                 default:
-                    log.AppendLine("Round ended in a draw\n");
+                    log.AppendLine($"Round {rounds} ended in a draw\n");
                     break;
             }
         }
 
-        // Bestimme Gesamtsieger
         string battleResult;
         if (player1Deck.Count > player2Deck.Count)
         {

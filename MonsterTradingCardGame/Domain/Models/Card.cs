@@ -9,6 +9,8 @@ public enum ElementType
 
 public abstract class Card
 {
+    private static readonly Random Random = new();
+
     public string Id { get; }
     public string Name { get; }
     public int Damage { get; }
@@ -23,5 +25,10 @@ public abstract class Card
         Damage = damage;
         ElementType = elementType;
         InDeck = false;
+    }
+
+    public virtual int GetDamageWithCritical()
+    {
+        return Random.Next(0, 100) < 10 ? Damage * 2 : Damage;
     }
 }
