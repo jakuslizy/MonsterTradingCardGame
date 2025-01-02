@@ -25,28 +25,68 @@ public class TradingServiceTests
     [Test]
     public void CreateTrade_CardInDeck_ThrowsInvalidOperationException()
     {
-        // Arrange
-        var card = new SpellCard("1", "TestSpell", 10, ElementType.Fire) 
-        { 
-            UserId = 1, 
-            InDeck = true 
+        var card = new SpellCard("1", "TestSpell", 10, ElementType.Fire)
+        {
+            UserId = 1,
+            InDeck = true
         };
-        _cardRepository.GetCardById("1").Returns(card);
+        TestContext.WriteLine($"Karte vorbereitet: {card.Name} (Im Deck: {card.InDeck})");
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => 
+        _cardRepository.GetCardById("1").Returns(card);
+        TestContext.WriteLine("CardRepository Mock konfiguriert");
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
             _tradingService.CreateTrade("trade1", "1", "spell", 10, _testUser));
+        TestContext.WriteLine($"{ex.Message}");
     }
 
     [Test]
     public void ExecuteTrade_TradingWithSelf_ThrowsInvalidOperationException()
     {
-        // Arrange
         var trading = new Trading("trade1", "card1", "spell", 10, 1);
-        _tradingRepository.GetTrade("trade1").Returns(trading);
+        TestContext.WriteLine($"Trading vorbereitet: ID {trading.Id}, UserId {trading.UserId}");
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => 
+        _tradingRepository.GetTrade("trade1").Returns(trading);
+        TestContext.WriteLine("TradingRepository Mock konfiguriert");
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
             _tradingService.ExecuteTrade("trade1", "card2", _testUser));
+        TestContext.WriteLine($" {ex.Message}");
+    }
+
+    [Test]
+    public void ExecuteTrade_WithValidCards_SuccessfullyCompletesTrade()
+    {
+        var tradingCard = new SpellCard("card1", "FireSpell", 50, ElementType.Fire)
+        {
+            UserId = 2, // Anderer User
+            InDeck = false
+        };
+
+        var offeredCard = new SpellCard("card2", "WaterSpell", 80, ElementType.Water)
+        {
+            UserId = 1, // Test User
+            InDeck = false
+        };
+
+        TestContext.WriteLine($"Trading Card vorbereitet: {tradingCard.Name} (Besitzer: User {tradingCard.UserId})");
+        TestContext.WriteLine($"Offered Card vorbereitet: {offeredCard.Name} (Besitzer: User {offeredCard.UserId})");
+
+        var trading = new Trading("trade1", "card1", "spell", 70, 2);
+
+        _tradingRepository.GetTrade("trade1").Returns(trading);
+        _cardRepository.GetCardById("card1").Returns(tradingCard);
+        _cardRepository.GetCardById("card2").Returns(offeredCard);
+        TestContext.WriteLine("Repository Mocks konfiguriert");
+
+        TestContext.WriteLine("Führe Trade aus...");
+        Assert.DoesNotThrow(() => _tradingService.ExecuteTrade("trade1", "card2", _testUser));
+        TestContext.WriteLine("Trade erfolgreich durchgeführt");
+
+        _cardRepository.Received(1).TransferCard("card1", 2, 1); // Trading Card zum Test User
+        _cardRepository.Received(1).TransferCard("card2", 1, 2); // Offered Card zum anderen User
+        _tradingRepository.Received(1).DeleteTrade("trade1");
+
+        TestContext.WriteLine("Überprüfung: Karten wurden korrekt übertragen und Trading-Deal wurde gelöscht");
     }
 }

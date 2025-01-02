@@ -26,7 +26,6 @@ public class CardServiceTests
     [Test]
     public void ConfigureDeck_WithValidCards_ShouldUpdateDeck()
     {
-        // Arrange
         var userCards = new List<Card>
         {
             new Dragon("card1", "Dragon", 10, ElementType.Fire) { UserId = 1, InDeck = false },
@@ -40,10 +39,8 @@ public class CardServiceTests
 
         _userRepository.GetUserCards(1).Returns(userCards);
 
-        // Act
         _cardService.ConfigureDeck(_testUser, selectedCardIds);
 
-        // Assert
         _userRepository.Received(1).UpdateUserDeck(
             Arg.Is<int>(id => id == 1),
             Arg.Is<List<string>>(cards =>
@@ -56,7 +53,6 @@ public class CardServiceTests
     [Test]
     public void GetUserDeck_ShouldReturnOnlyDeckCards()
     {
-        // Arrange
         var allUserCards = new List<Card>
         {
             new Dragon("card1", "Dragon", 10, ElementType.Fire) { UserId = 1, InDeck = true },
@@ -65,21 +61,28 @@ public class CardServiceTests
             new SpellCard("card4", "FireSpell", 40, ElementType.Fire) { UserId = 1, InDeck = true },
             new SpellCard("card5", "WaterSpell", 50, ElementType.Water) { UserId = 1, InDeck = false }
         };
+        TestContext.WriteLine(
+            $"User Cards vorbereitet: {allUserCards.Count} Karten gesamt, davon {allUserCards.Count(c => c.InDeck)} im Deck");
 
         _userRepository.GetUserDeck(_testUser.Id).Returns(allUserCards.Where(c => c.InDeck).ToList());
+        TestContext.WriteLine("Repository Mock konfiguriert");
 
-        // Act
         var deckCards = _cardService.GetUserDeck(_testUser);
+        TestContext.WriteLine($"Erhaltene Deck-Karten: {deckCards.Count}");
 
-        // Assert
         Assert.That(deckCards.Count, Is.EqualTo(4));
         Assert.That(deckCards.All(c => c.InDeck), Is.True);
+
+        TestContext.WriteLine("\nKarten im Deck:");
+        foreach (var card in deckCards)
+        {
+            TestContext.WriteLine($"- {card.Name} ({card.ElementType}, {card.Damage} Damage)");
+        }
     }
 
     [Test]
     public void ConfigureDeck_WithCardsNotInStack_ShouldThrowException()
     {
-        // Arrange
         var userCards = new List<Card>
         {
             new Dragon("card1", "Dragon", 10, ElementType.Fire) { UserId = 1, InDeck = false }
@@ -89,7 +92,6 @@ public class CardServiceTests
 
         _userRepository.GetUserCards(1).Returns(userCards);
 
-        // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(
             () => _cardService.ConfigureDeck(_testUser, invalidCardIds)
         );
@@ -99,7 +101,6 @@ public class CardServiceTests
     [Test]
     public void ConfigureDeck_WithMoreThan4Cards_ThrowsException()
     {
-        // Arrange
         var userCards = new List<Card>
         {
             new Dragon("1", "Dragon", 10, ElementType.Fire),
@@ -108,24 +109,28 @@ public class CardServiceTests
             new SpellCard("4", "FireSpell", 40, ElementType.Fire),
             new SpellCard("5", "WaterSpell", 50, ElementType.Water)
         };
+        TestContext.WriteLine($"User Stack vorbereitet mit {userCards.Count} Karten");
+
+        _userRepository.GetUserCards(1).Returns(userCards);
+        TestContext.WriteLine("Repository Mock konfiguriert");
 
         var invalidDeckSelection = new List<string> { "1", "2", "3", "4", "5" };
+        TestContext.WriteLine($"Versuche Deck mit {invalidDeckSelection.Count} Karten zu konfigurieren");
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => 
+        var ex = Assert.Throws<InvalidOperationException>(() =>
             _cardService.ConfigureDeck(_testUser, invalidDeckSelection));
+        TestContext.WriteLine($"{ex.Message}");
     }
 
     [Test]
     public void GetUserDeck_WithEmptyDeck_ReturnsEmptyList()
     {
-        // Arrange
         _userRepository.GetUserDeck(_testUser.Id).Returns(new List<Card>());
+        TestContext.WriteLine("Repository wurde mit leerem Deck konfiguriert");
 
-        // Act
         var result = _cardService.GetUserDeck(_testUser);
+        TestContext.WriteLine($"Erhaltenes Deck hat {result.Count} Karten");
 
-        // Assert
         Assert.That(result, Is.Empty);
     }
 }

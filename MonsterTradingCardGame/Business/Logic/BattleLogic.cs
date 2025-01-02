@@ -45,9 +45,9 @@ public class BattleLogic
         return 0; // Unentschieden
     }
 
-    private double GetElementalMultiplier(ElementType attacker, ElementType defender) 
+    private double GetElementalMultiplier(ElementType attacker, ElementType defender)
     {
-        return (attacker, defender) switch 
+        return (attacker, defender) switch
         {
             (ElementType.Water, ElementType.Fire) => 2.0,
             (ElementType.Fire, ElementType.Normal) => 2.0,

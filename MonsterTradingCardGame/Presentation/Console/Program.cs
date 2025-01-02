@@ -12,17 +12,17 @@ public class Program
 {
     private static HttpServer? _server;
     private static Thread? _serverThread;
-    
+
     public static void Main(string[] args)
     {
         try
         {
             // Repositories initialisieren
-            
+
 
             // Services und Repositories mit korrekter Reihenfolge
             var cardRepository = new CardRepository();
-            var userRepository = new UserRepository(cardRepository); 
+            var userRepository = new UserRepository(cardRepository);
             var cardService = new CardService(userRepository);
             var statsRepository = new StatsRepository();
             var sessionRepository = new SessionRepository();
@@ -79,7 +79,7 @@ public class Program
 
             System.Console.WriteLine("Drücken Sie eine beliebige Taste zum Beenden...");
             System.Console.ReadKey();
-            
+
             // Server ordnungsgemäß beenden
             _server.Stop();
             _serverThread.Join(); // Warten bis der Server-Thread beendet ist
@@ -96,6 +96,7 @@ public class Program
             {
                 _server.Stop();
             }
+
             if (_serverThread != null && _serverThread.IsAlive)
             {
                 _serverThread.Join();
