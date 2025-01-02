@@ -23,10 +23,18 @@ namespace MonsterTradingCardGame.API.Server
             _server.Start();
             Console.WriteLine($"Server: use http://localhost:{port}/");
 
-            while (true)
+            while (_isRunning)
             {
-                TcpClient client = _server.AcceptTcpClient();
-                ThreadPool.QueueUserWorkItem(requestProcessor.ProcessRequest, client);
+                try
+                {
+                    TcpClient client = _server.AcceptTcpClient();
+                    ThreadPool.QueueUserWorkItem(requestProcessor.ProcessRequest, client);
+                }
+                catch (SocketException) when (!_isRunning)
+                {
+                    // Server wurde ordnungsgemäß gestoppt
+                    break;
+                }
             }
         }
     }

@@ -169,17 +169,26 @@ public class BattleLogicTests
         TestContext.WriteLine(
             $"WeakGoblin: {weakMonster.Name} (Damage: {weakMonster.Damage}, Element: {weakMonster.ElementType})");
 
-        try
+        // Mehrere Durchläufe durchführen
+        var results = new Dictionary<int, int>();
+        const int iterations = 100;
+
+        for (int i = 0; i < iterations; i++)
         {
             var result = _battleLogic.DetermineRoundWinner(strongMonster, weakMonster);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(1), "Monster with higher damage should win in pure monster fights");
+            results.TryAdd(result, 0);
+            results[result]++;
         }
-        catch (Exception ex)
+
+        TestContext.WriteLine("\nErgebnisse nach " + iterations + " Durchläufen:");
+        foreach (var kvp in results)
         {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
+            TestContext.WriteLine($"Spieler {kvp.Key}: {kvp.Value} Siege ({kvp.Value * 100.0 / iterations:F1}%)");
         }
+
+        // Das stärkere Monster sollte häufiger gewinnen
+        Assert.That(results.GetValueOrDefault(1, 0), Is.GreaterThan(results.GetValueOrDefault(2, 0)),
+            "Stärkeres Monster sollte häufiger gewinnen");
     }
 
     [Test]
@@ -270,8 +279,7 @@ public class BattleLogicTests
         for (int i = 0; i < iterations; i++)
         {
             var damage = _battleLogic.CalculateDamage(card1, card2);
-            if (!results.ContainsKey(damage))
-                results[damage] = 0;
+            results.TryAdd(damage, 0);
             results[damage]++;
         }
 
@@ -283,12 +291,12 @@ public class BattleLogicTests
             TestContext.WriteLine($"Schaden {kvp.Key}: {kvp.Value} mal ({percentage:F1}%)");
         }
 
-        int criticalDamage = results.ContainsKey(100) ? results[100] : 0;
+        int criticalDamage = results.GetValueOrDefault(100, 0);
         double criticalPercentage = (double)criticalDamage / iterations * 100;
 
         TestContext.WriteLine($"\nKritische Treffer: {criticalPercentage:F1}%");
 
-        // Überprüfen, ob die Verteilung ungefähr stimmt (10% ±2%)
+        // Überprüfen, ob die Verteilung ungefähr stimmt (10 % ±2 %)
         Assert.That(criticalPercentage, Is.InRange(8, 12),
             "Kritische Treffer sollten bei etwa 10% liegen");
 

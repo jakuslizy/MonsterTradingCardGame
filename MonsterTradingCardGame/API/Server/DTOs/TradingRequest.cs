@@ -2,8 +2,8 @@ namespace MonsterTradingCardGame.API.Server.DTOs;
 
 public class TradingRequest
 {
-    public string Id { get; set; } = "";
-    public string CardToTrade { get; set; } = "";
-    public string Type { get; set; } = "";
-    public int? MinimumDamage { get; set; }
+    public string Id { get; init; } = "";
+    public string CardToTrade { get; init; } = "";
+    public string Type { get; init; } = "";
+    public int? MinimumDamage { get; init; }
 }
