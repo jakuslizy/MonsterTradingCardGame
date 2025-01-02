@@ -107,7 +107,10 @@ public class Program
         try
         {
             var dataLayer = DataLayer.Instance;
-            using var command = dataLayer.CreateCommand("SELECT 1");
+            using var connection = dataLayer.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1";
+            
             command.ExecuteScalar();
             System.Console.WriteLine("Datenbankverbindung erfolgreich hergestellt!");
         }

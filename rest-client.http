@@ -19,7 +19,7 @@ Content-Type: application/json
   "Password": "Plutowsky"
 }
 
-### Mickey registrieren
+### Gurami registrieren
 POST {{baseUrl}}/users HTTP/1.1
 Content-Type: application/json
 
@@ -47,7 +47,7 @@ Content-Type: application/json
   "Password": "Plutowsky"
 }
 
-### Mickey einloggen
+### Gurami einloggen
 POST {{baseUrl}}/sessions HTTP/1.1
 Content-Type: application/json
 
@@ -197,11 +197,11 @@ Authorization: Bearer Pluto-mtcgToken
 POST {{baseUrl}}/transactions/packages HTTP/1.1
 Authorization: Bearer Pluto-mtcgToken
 
-### 5. Mickey kauft seine Pakete (3 und 4)
+### 5. Gurami kauft seine Pakete (3 und 4)
 POST {{baseUrl}}/transactions/packages HTTP/1.1
 Authorization: Bearer gurami-mtcgToken
 
-### Mickey kauft zweites Paket
+### Gurami kauft zweites Paket
 POST {{baseUrl}}/transactions/packages HTTP/1.1
 Authorization: Bearer gurami-mtcgToken
 
@@ -217,7 +217,7 @@ Authorization: Bearer Pluto-mtcgToken
   "171f6076-4eb5-4a7d-b3f2-2d650cc3d237"
 ]
 
-### 7. Mickey konfiguriert sein Deck
+### 7. Gurami konfiguriert sein Deck
 PUT {{baseUrl}}/deck HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer gurami-mtcgToken
@@ -240,7 +240,7 @@ Authorization: Bearer Pluto-mtcgToken
   "Image": ":-)"
 }
 
-### 9. Mickey aktualisiert sein Profil
+### 9. Gurami aktualisiert sein Profil
 PUT {{baseUrl}}/users/gurami HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer gurami-mtcgToken
@@ -273,6 +273,6 @@ Authorization: Bearer Pluto-mtcgToken
 POST {{baseUrl}}/battles HTTP/1.1
 Authorization: Bearer Pluto-mtcgToken
 
-### Mickey startet Battle
+### Gurami startet Battle
 POST {{baseUrl}}/battles HTTP/1.1
 Authorization: Bearer gurami-mtcgToken

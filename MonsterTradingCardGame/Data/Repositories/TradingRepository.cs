@@ -10,9 +10,11 @@ namespace MonsterTradingCardGame.Data.Repositories
 
         public IEnumerable<Trading> GetAllTrades()
         {
-            using var command = _dal.CreateCommand(@"
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
                 SELECT id, card_to_trade, type, minimum_damage, user_id 
-                FROM tradings");
+                FROM tradings";
 
             var trades = new List<Trading>();
             using var reader = command.ExecuteReader();
@@ -33,10 +35,12 @@ namespace MonsterTradingCardGame.Data.Repositories
 
         public Trading? GetTrade(string id)
         {
-            using var command = _dal.CreateCommand(@"
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
                 SELECT id, card_to_trade, type, minimum_damage, user_id 
                 FROM tradings 
-                WHERE id = @id");
+                WHERE id = @id";
 
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, id);
 
@@ -57,9 +61,11 @@ namespace MonsterTradingCardGame.Data.Repositories
 
         public void CreateTrade(Trading trade)
         {
-            using var command = _dal.CreateCommand(@"
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
                 INSERT INTO tradings (id, card_to_trade, type, minimum_damage, user_id)
-                VALUES (@id, @cardToTrade, @type, @minimumDamage, @userId)");
+                VALUES (@id, @cardToTrade, @type, @minimumDamage, @userId)";
 
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, trade.Id);
             DataLayer.AddParameterWithValue(command, "@cardToTrade", DbType.String, trade.CardToTrade);
@@ -73,9 +79,11 @@ namespace MonsterTradingCardGame.Data.Repositories
 
         public void DeleteTrade(string id)
         {
-            using var command = _dal.CreateCommand(@"
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
                 DELETE FROM tradings
-                WHERE id = @id");
+                WHERE id = @id";
 
             DataLayer.AddParameterWithValue(command, "@id", DbType.String, id);
             command.ExecuteNonQuery();

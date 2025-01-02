@@ -61,16 +61,7 @@ public class DataLayer : IDisposable
         _dataSource.Dispose();
     }
 
-    public IDbCommand CreateCommand(string commandText)
-    {
-        var connection = CreateConnection();
-        var command = connection.CreateCommand();
-        command.CommandText = commandText;
-        command.Connection = connection;
-        return command;
-    }
-
-    public static void AddParameterWithValue(IDbCommand command, string parameterName, DbType dbType, object value)
+    public static void AddParameterWithValue(IDbCommand command, string parameterName, DbType dbType, object? value)
     {
         var parameter = command.CreateParameter();
         parameter.ParameterName = parameterName;
