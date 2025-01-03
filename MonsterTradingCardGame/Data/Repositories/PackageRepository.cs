@@ -96,7 +96,8 @@ namespace MonsterTradingCardGame.Data.Repositories
                 // Update cards ownership in the same transaction
                 command.CommandText = @"
                 UPDATE cards 
-                SET user_id = @userId 
+                SET user_id = @userId,
+                    in_stack = true 
                 WHERE package_id = @packageId";
 
                 command.ExecuteNonQuery();
@@ -134,8 +135,8 @@ namespace MonsterTradingCardGame.Data.Repositories
                 foreach (var card in cards)
                 {
                     command.CommandText = @"
-                    INSERT INTO cards (id, name, damage, element_type, package_id)
-                    VALUES (@id, @name, @damage, @element_type, @package_id)";
+                    INSERT INTO cards (id, name, damage, element_type, package_id, in_stack)
+                    VALUES (@id, @name, @damage, @element_type, @package_id, false)";
 
                     command.Parameters.Clear();
                     DataLayer.AddParameterWithValue(command, "@id", DbType.String, card.Id);
