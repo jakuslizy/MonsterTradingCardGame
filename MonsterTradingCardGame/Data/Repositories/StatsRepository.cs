@@ -29,7 +29,11 @@ public class StatsRepository : IStatsRepository
     {
         using var connection = _dal.CreateConnection();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT * FROM stats WHERE user_id = @userId";
+        command.CommandText = @"
+            SELECT s.*, u.display_name, u.username 
+            FROM stats s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.user_id = @userId";
         DataLayer.AddParameterWithValue(command, "@userId", DbType.Int32, userId);
 
         using var reader = command.ExecuteReader();
@@ -39,6 +43,9 @@ public class StatsRepository : IStatsRepository
                 userId: reader.GetInt32(reader.GetOrdinal("user_id")))
             {
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
+                Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
+                    ? reader.GetString(reader.GetOrdinal("username"))
+                    : reader.GetString(reader.GetOrdinal("display_name")),
                 GamesPlayed = reader.GetInt32(reader.GetOrdinal("games_played")),
                 GamesWon = reader.GetInt32(reader.GetOrdinal("games_won")),
                 GamesLost = reader.GetInt32(reader.GetOrdinal("games_lost")),
@@ -77,7 +84,11 @@ public class StatsRepository : IStatsRepository
     {
         using var connection = _dal.CreateConnection();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT * FROM stats";
+        command.CommandText = @"
+            SELECT s.*, u.display_name, u.username 
+            FROM stats s
+            JOIN users u ON s.user_id = u.id
+            ORDER BY s.elo DESC";
 
         var stats = new List<Stats>();
         using var reader = command.ExecuteReader();
@@ -88,6 +99,9 @@ public class StatsRepository : IStatsRepository
                 userId: reader.GetInt32(reader.GetOrdinal("user_id")))
             {
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
+                Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
+                    ? reader.GetString(reader.GetOrdinal("username"))
+                    : reader.GetString(reader.GetOrdinal("display_name")),
                 GamesPlayed = reader.GetInt32(reader.GetOrdinal("games_played")),
                 GamesWon = reader.GetInt32(reader.GetOrdinal("games_won")),
                 GamesLost = reader.GetInt32(reader.GetOrdinal("games_lost")),

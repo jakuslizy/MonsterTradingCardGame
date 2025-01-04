@@ -22,6 +22,13 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
             throw new InvalidOperationException("Cannot battle against yourself");
         }
 
+        // Hole die User-Daten für die Display-Namen
+        var player1Data = userRepository.GetUserById(player1.Id);
+        var player2Data = userRepository.GetUserById(player2.Id);
+
+        var player1DisplayName = string.IsNullOrEmpty(player1Data?.Name) ? player1.Username : player1Data.Name;
+        var player2DisplayName = string.IsNullOrEmpty(player2Data?.Name) ? player2.Username : player2Data.Name;
+
         var player1Deck = userRepository.GetUserDeck(player1.Id);
         var player2Deck = userRepository.GetUserDeck(player2.Id);
 
@@ -33,7 +40,7 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
         var log = new StringBuilder();
         var rounds = 0;
 
-        log.AppendLine($"Battle: {player1.Username} vs {player2.Username}\n");
+        log.AppendLine($"Battle: {player1DisplayName} vs {player2DisplayName}\n");
 
         while (rounds < 100 && player1Deck.Count > 0 && player2Deck.Count > 0)
         {
@@ -49,22 +56,22 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
 
             // Zeige die Basis-Karten und deren tatsächlichen Schaden
             log.AppendLine(
-                $"{player1.Username}'s {card1.Name} ({card1.ElementType}, Base Damage: {card1.Damage}, Effective Damage: {damage1}{(damage1 > card1.Damage ? " [CRITICAL HIT!]" : "")}) vs");
+                $"{player1DisplayName}'s {card1.Name} ({card1.ElementType}, Base Damage: {card1.Damage}, Effective Damage: {damage1}{(damage1 > card1.Damage ? " [CRITICAL HIT!]" : "")}) vs");
             log.AppendLine(
-                $"{player2.Username}'s {card2.Name} ({card2.ElementType}, Base Damage: {card2.Damage}, Effective Damage: {damage2}{(damage2 > card2.Damage ? " [CRITICAL HIT!]" : "")})");
+                $"{player2DisplayName}'s {card2.Name} ({card2.ElementType}, Base Damage: {card2.Damage}, Effective Damage: {damage2}{(damage2 > card2.Damage ? " [CRITICAL HIT!]" : "")})");
 
             var winner = _battleLogic.DetermineRoundWinner(card1, card2);
 
             switch (winner)
             {
                 case 1:
-                    log.AppendLine($"{player1.Username} wins round {rounds}\n");
+                    log.AppendLine($"{player1DisplayName} wins round {rounds}\n");
                     TransferCard(card2, player2.Id, player1.Id);
                     player2Deck.Remove(card2);
                     player1Deck.Add(card2);
                     break;
                 case 2:
-                    log.AppendLine($"{player2.Username} wins round {rounds}\n");
+                    log.AppendLine($"{player2DisplayName} wins round {rounds}\n");
                     TransferCard(card1, player1.Id, player2.Id);
                     player1Deck.Remove(card1);
                     player2Deck.Add(card1);
@@ -78,12 +85,12 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
         string battleResult;
         if (player1Deck.Count > player2Deck.Count)
         {
-            battleResult = $"{player1.Username} wins the battle!";
+            battleResult = $"{player1DisplayName} wins the battle!";
             UpdateStats(player1, player2, false);
         }
         else if (player2Deck.Count > player1Deck.Count)
         {
-            battleResult = $"{player2.Username} wins the battle!";
+            battleResult = $"{player2DisplayName} wins the battle!";
             UpdateStats(player2, player1, false);
         }
         else
@@ -94,7 +101,7 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
 
         log.AppendLine(battleResult);
         log.AppendLine(
-            $"Final Score - {player1.Username}: {player1Deck.Count} cards, {player2.Username}: {player2Deck.Count} cards");
+            $"Final Score - {player1DisplayName}: {player1Deck.Count} cards, {player2DisplayName}: {player2Deck.Count} cards");
 
         return log.ToString();
     }

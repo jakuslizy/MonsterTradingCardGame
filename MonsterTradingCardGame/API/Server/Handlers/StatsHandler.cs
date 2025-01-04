@@ -16,9 +16,12 @@ public class StatsHandler(
         try
         {
             var stats = userService.GetUserStats(user.Id);
+            var userData = userRepository.GetUserById(user.Id);
+            var displayName = userData?.Name ?? user.Username;
+
             var statsResponse = new
             {
-                Name = user.Username,
+                Name = displayName,
                 ELO = stats.Elo,
                 stats.GamesPlayed,
                 stats.GamesWon,
@@ -28,8 +31,9 @@ public class StatsHandler(
                     : "0%"
             };
 
+            var options = new JsonSerializerOptions { WriteIndented = true };
             return new Response(200,
-                JsonSerializer.Serialize(statsResponse),
+                JsonSerializer.Serialize(statsResponse, options),
                 "application/json");
         }
         catch (Exception ex)
@@ -47,7 +51,6 @@ public class StatsHandler(
                 .OrderByDescending(stats => stats.Elo)
                 .Select((stats, index) =>
                 {
-                    var user = userRepository.GetUserById(stats.UserId);
                     var rank = index switch
                     {
                         0 => " 1st Place",
@@ -59,7 +62,7 @@ public class StatsHandler(
                     return new
                     {
                         Rank = rank,
-                        Name = user?.Username,
+                        stats.Name,
                         stats.Elo,
                         stats.GamesPlayed,
                         WinRate = stats.GamesPlayed > 0

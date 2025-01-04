@@ -93,11 +93,12 @@ public class UserHandler(IUserService userService)
             }
 
             var user = _userService.GetUserData(username);
+
             var userData = new
             {
-                user.Name,
-                user.Bio,
-                user.Image
+                Name = user.Name ?? "",
+                Bio = user.Bio ?? "",
+                Image = user.Image ?? ""
             };
 
             return new Response(200,
@@ -124,7 +125,6 @@ public class UserHandler(IUserService userService)
                 return new Response(400, "Request body is empty", "application/json");
             }
 
-            // Bereinige den Body von ungültigen Zeichen
             string cleanBody = new string(body.Where(c => !char.IsControl(c) || char.IsWhiteSpace(c)).ToArray());
 
             var options = new JsonSerializerOptions
@@ -146,7 +146,15 @@ public class UserHandler(IUserService userService)
                 updateData.Image
             );
 
-            return new Response(200, "User data updated successfully", "application/json");
+            var updatedUser = _userService.GetUserData(username);
+            var userData = new
+            {
+                updatedUser.Name,
+                updatedUser.Bio,
+                updatedUser.Image
+            };
+
+            return new Response(200, JsonSerializer.Serialize(userData), "application/json");
         }
         catch (JsonException ex)
         {

@@ -4,6 +4,7 @@ public class Stats
 {
     public int Id { get; set; }
     public int UserId { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int GamesPlayed { get; set; }
     public int GamesWon { get; set; }
     public int GamesLost { get; set; }

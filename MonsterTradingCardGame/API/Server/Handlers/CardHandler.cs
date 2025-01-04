@@ -23,10 +23,10 @@ public class CardHandler(ICardService cardService)
             {
                 var plainText = new StringBuilder();
                 plainText.AppendLine($"=== Kartenliste von {user.Username} ===\n");
-                
+
                 var sortedCards = cards.OrderBy(c => c.Id);
                 int counter = 1;
-                
+
                 foreach (var card in sortedCards)
                 {
                     plainText.AppendLine(
@@ -36,21 +36,21 @@ public class CardHandler(ICardService cardService)
                         $"\n   Element: {card.ElementType}\n");
                     counter++;
                 }
-                
+
                 return new Response(200, plainText.ToString(), "text/plain");
             }
 
             // JSON Format (mit Einrückung)
             var cardsList = cards.Select((card, index) => new
-            {
-                Number = index + 1,
-                card.Id,
-                card.Name,
-                card.Damage,
-                Element = card.ElementType.ToString()
-            })
-            .OrderBy(c => c.Number)
-            .ToList();
+                {
+                    Number = index + 1,
+                    card.Id,
+                    card.Name,
+                    card.Damage,
+                    Element = card.ElementType.ToString()
+                })
+                .OrderBy(c => c.Number)
+                .ToList();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             return new Response(200,
@@ -79,10 +79,10 @@ public class CardHandler(ICardService cardService)
             {
                 var plainText = new StringBuilder();
                 plainText.AppendLine($"=== Deck von {user.Username} ===\n");
-                
+
                 var sortedDeck = deck.OrderBy(c => c.Id);
                 int counter = 1;
-                
+
                 foreach (var card in sortedDeck)
                 {
                     plainText.AppendLine(
@@ -92,21 +92,21 @@ public class CardHandler(ICardService cardService)
                         $"\n   Element: {card.ElementType}\n");
                     counter++;
                 }
-                
+
                 return new Response(200, plainText.ToString(), "text/plain");
             }
 
             // JSON Format (mit Einrückung)
             var deckResponse = deck.Select((card, index) => new
-            {
-                Number = index + 1,
-                card.Id,
-                card.Name,
-                card.Damage,
-                Element = card.ElementType.ToString()
-            })
-            .OrderBy(c => c.Number)
-            .ToList();
+                {
+                    Number = index + 1,
+                    card.Id,
+                    card.Name,
+                    card.Damage,
+                    Element = card.ElementType.ToString()
+                })
+                .OrderBy(c => c.Number)
+                .ToList();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             return new Response(200,
@@ -139,15 +139,20 @@ public class CardHandler(ICardService cardService)
 
             // Nach erfolgreicher Konfiguration die aktualisierten Karten aus der DB holen
             var updatedDeck = cardService.GetUserDeck(user);
-            var deckResponse = updatedDeck.Select(card => new
-            {
-                card.Id,
-                card.Name,
-                card.Damage
-            }).ToList();
+            var deckResponse = updatedDeck.Select((card, index) => new
+                {
+                    Number = index + 1,
+                    card.Id,
+                    card.Name,
+                    card.Damage,
+                    Element = card.ElementType.ToString()
+                })
+                .OrderBy(c => c.Number)
+                .ToList();
 
+            var options = new JsonSerializerOptions { WriteIndented = true };
             return new Response(200,
-                JsonSerializer.Serialize(deckResponse),
+                JsonSerializer.Serialize(deckResponse, options),
                 "application/json");
         }
         catch (JsonException)
