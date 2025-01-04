@@ -55,6 +55,11 @@ public class HomePageView
                     <img src='data:image/png;base64,{imageBase64}' alt='MTCG Logo'>
                 </div>
 
+                <div class='button-group'>
+                    <a href='/register' class='cta-button'>Jetzt Registrieren</a>
+                    <a href='/login' class='cta-button'>Login</a>
+                </div>
+
                 <div class='features'>
                     <div class='feature-card'>
                         <h3>🎮 Spannendes Gameplay</h3>
@@ -70,7 +75,6 @@ public class HomePageView
                     </div>
                 </div>
 
-                <a href='/register' class='cta-button'>Jetzt Registrieren</a>
             </div>
         </body>
         </html>";
