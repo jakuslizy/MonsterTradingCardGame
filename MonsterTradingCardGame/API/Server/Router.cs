@@ -71,6 +71,12 @@ namespace MonsterTradingCardGame.API.Server
                 return homePageView.Render();
             }
 
+            if (method == "GET" && path == "/register")
+            {
+                var registerView = new RegisterView();
+                return registerView.Render();
+            }
+
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);
         }
