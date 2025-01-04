@@ -47,7 +47,7 @@ public class TradingService(ITradingRepository tradingRepository, ICardRepositor
         return tradingRepository.GetAllTrades().ToList();
     }
 
-    public void ExecuteTrade(string tradeId, string offeredCardId, User user)
+    public string ExecuteTrade(string tradeId, string offeredCardId, User user)
     {
         var trade = tradingRepository.GetTrade(tradeId);
         if (trade == null)
@@ -68,6 +68,12 @@ public class TradingService(ITradingRepository tradingRepository, ICardRepositor
             throw new InvalidOperationException("Card not found or not owned by user");
         }
 
+        var tradingCard = cardRepository.GetCardById(trade.CardToTrade);
+        if (tradingCard == null)
+        {
+            throw new InvalidOperationException("Trading card not found");
+        }
+
         // Prüfe den Kartentyp (Monster oder Spell)
         if (!string.Equals(trade.Type, offeredCard.Name.Contains("Spell") ? "spell" : "monster",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -82,6 +88,10 @@ public class TradingService(ITradingRepository tradingRepository, ICardRepositor
 
         // Lösche den Trading-Deal
         tradingRepository.DeleteTrade(tradeId);
+
+        return $"Handel erfolgreich ausgeführt!\n" +
+               $"Anbieter (User {trade.UserId}) gibt: {tradingCard.Id} , {tradingCard.Name} (Schaden: {tradingCard.Damage})\n" +
+               $"Händler (User {user.Id}) gibt: {offeredCard.Id} , {offeredCard.Name} (Schaden: {offeredCard.Damage})";
     }
 
     public void DeleteTrade(string tradeId, User user)

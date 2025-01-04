@@ -23,10 +23,10 @@ public class TradingHandler(ITradingService tradingService)
             {
                 var plainText = new StringBuilder();
                 plainText.AppendLine("=== Verfügbare Trading Deals ===\n");
-                
+
                 var sortedTrades = trades.OrderBy(t => t.Id);
                 int counter = 1;
-                
+
                 foreach (var trade in sortedTrades)
                 {
                     plainText.AppendLine(
@@ -38,22 +38,22 @@ public class TradingHandler(ITradingService tradingService)
                         $"\n   Anbieter: {trade.UserId}\n");
                     counter++;
                 }
-                
+
                 return new Response(200, plainText.ToString(), "text/plain");
             }
 
             // JSON Format (mit Einrückung)
             var tradingList = trades.Select((trade, index) => new
-            {
-                Number = index + 1,
-                trade.Id,
-                CardToTrade = trade.CardToTrade,
-                Type = trade.Type,
-                MinimumDamage = trade.MinimumDamage ?? 0,
-                UserId = trade.UserId
-            })
-            .OrderBy(t => t.Number)
-            .ToList();
+                {
+                    Number = index + 1,
+                    trade.Id,
+                    trade.CardToTrade,
+                    trade.Type,
+                    MinimumDamage = trade.MinimumDamage ?? 0,
+                    trade.UserId
+                })
+                .OrderBy(t => t.Number)
+                .ToList();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             return new Response(200,
@@ -106,8 +106,8 @@ public class TradingHandler(ITradingService tradingService)
                 return new Response(400, "Invalid request body", "application/json");
             }
 
-            tradingService.ExecuteTrade(tradeId, offeredCardId, user);
-            return new Response(201, "Trading deal executed successfully", "application/json");
+            var tradeResult = tradingService.ExecuteTrade(tradeId, offeredCardId, user);
+            return new Response(201, tradeResult, "application/json");
         }
         catch (InvalidOperationException ex)
         {
