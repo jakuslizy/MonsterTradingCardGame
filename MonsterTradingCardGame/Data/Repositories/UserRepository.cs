@@ -268,14 +268,19 @@ public class UserRepository(ICardRepository cardRepository) : IUserRepository
             id: reader.GetInt32(reader.GetOrdinal("id")),
             username: reader.GetString(reader.GetOrdinal("username")),
             passwordHash: reader.GetString(reader.GetOrdinal("password_hash")),
-            createdAt: reader.GetDateTime(reader.GetOrdinal("created_at"))
+            createdAt: reader.GetDateTime(reader.GetOrdinal("created_at")),
+            coins: reader.GetInt32(reader.GetOrdinal("coins"))
         )
         {
             Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
                 ? null
                 : reader.GetString(reader.GetOrdinal("display_name")),
-            Bio = reader.IsDBNull(reader.GetOrdinal("bio")) ? null : reader.GetString(reader.GetOrdinal("bio")),
-            Image = reader.IsDBNull(reader.GetOrdinal("image")) ? null : reader.GetString(reader.GetOrdinal("image"))
+            Bio = reader.IsDBNull(reader.GetOrdinal("bio")) 
+                ? null 
+                : reader.GetString(reader.GetOrdinal("bio")),
+            Image = reader.IsDBNull(reader.GetOrdinal("image"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("image"))
         };
     }
 

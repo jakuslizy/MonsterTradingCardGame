@@ -96,13 +96,16 @@ public class UserHandler(IUserService userService)
 
             var userData = new
             {
+                Username = user.Username,
+                CreatedAt = user.CreatedAt,
+                Coins = user.Coins,
                 Name = user.Name ?? "",
                 Bio = user.Bio ?? "",
                 Image = user.Image ?? ""
             };
 
             return new Response(200,
-                JsonSerializer.Serialize(userData),
+                JsonSerializer.Serialize(userData, new JsonSerializerOptions { WriteIndented = true }),
                 "application/json");
         }
         catch (Exception ex)

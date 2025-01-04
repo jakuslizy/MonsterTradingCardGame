@@ -9,6 +9,7 @@ public class User
     public string? Name { get; set; }
     public string? Bio { get; set; }
     public string? Image { get; set; }
+    public int Coins { get; set; }
 
     public User(
         string username,
@@ -21,5 +22,6 @@ public class User
         Username = username;
         PasswordHash = passwordHash;
         CreatedAt = createdAt ?? DateTime.UtcNow;
+        Coins = coins;
     }
 }
