@@ -2,6 +2,7 @@ using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
+using System.Text.Json;
 
 namespace MonsterTradingCardGame.API.Server.Handlers
 {
@@ -60,6 +61,25 @@ namespace MonsterTradingCardGame.API.Server.Handlers
             catch (Exception ex)
             {
                 return new Response(500, $"Error while acquiring package: {ex.Message}", "application/json");
+            }
+        }
+
+        public Response HandleGetAvailablePackages(User user)
+        {
+            try
+            {
+                var availablePackages = packageRepository.GetAvailablePackages();
+                if (availablePackages == null || !availablePackages.Any())
+                {
+                    return new Response(200, "[]", "application/json");
+                }
+                
+                return new Response(200, System.Text.Json.JsonSerializer.Serialize(availablePackages), "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fehler beim Laden der Pakete: {ex}");
+                return new Response(500, "Internal Server Error: " + ex.Message, "application/json");
             }
         }
     }

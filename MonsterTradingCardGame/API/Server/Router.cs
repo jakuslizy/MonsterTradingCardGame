@@ -83,10 +83,22 @@ namespace MonsterTradingCardGame.API.Server
                 return loginView.Render();
             }
 
+            if (method == "GET" && path == "/deck")
+            {
+                var deckView = new DeckView();
+                return deckView.Render();
+            }
+
             if (method == "GET" && path == "/profile")
             {
                 var profileView = new ProfileView();
                 return profileView.Render();
+            }
+
+            if (method == "GET" && path == "/shop")
+            {
+                var shopView = new ShopView();
+                return shopView.Render();
             }
 
             if (method == "DELETE" && path == "/sessions")
@@ -128,6 +140,7 @@ namespace MonsterTradingCardGame.API.Server
                 // Package routes
                 ("POST", "/transactions/packages") => _packageHandler.HandleBuyPackage(user),
                 ("POST", "/packages") => _packageHandler.HandleCreatePackage(user.Username, body),
+                ("GET", "/packages/available") => _packageHandler.HandleGetAvailablePackages(user),
 
                 // Card routes
                 ("GET", "/cards") => _cardHandler.HandleGetUserCards(user),

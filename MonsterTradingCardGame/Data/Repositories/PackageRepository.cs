@@ -157,5 +157,51 @@ namespace MonsterTradingCardGame.Data.Repositories
                 throw;
             }
         }
+
+        public IEnumerable<Package> GetAvailablePackages()
+        {
+            using var connection = _dal.CreateConnection();
+            using var command = connection.CreateCommand();
+            
+            command.CommandText = @"
+            SELECT p.id, c.id as card_id, c.name, c.damage, c.element_type
+            FROM packages p 
+            LEFT JOIN cards c ON c.package_id = p.id
+            WHERE p.purchased_by IS NULL";
+            
+            Console.WriteLine("Suche verfügbare Pakete...");
+            var packages = new Dictionary<int, Package>();
+            
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var packageId = reader.GetInt32(0);
+                    
+                    if (!packages.TryGetValue(packageId, out var package))
+                    {
+                        package = new Package { Id = packageId };
+                        packages[packageId] = package;
+                    }
+
+                    if (!reader.IsDBNull(1)) // Wenn Karten vorhanden sind
+                    {
+                        var card = cardService.CreateCard(
+                            reader.GetString(1), // card_id
+                            reader.GetString(2), // name
+                            reader.GetInt32(3),  // damage
+                            Enum.Parse<ElementType>(reader.GetString(4)) // element_type
+                        );
+                        if (card != null)
+                        {
+                            package.AddCard(card);
+                        }
+                    }
+                }
+            }
+            
+            Console.WriteLine($"Insgesamt {packages.Count} Pakete gefunden");
+            return packages.Values;
+        }
     }
 }
