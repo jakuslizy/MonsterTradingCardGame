@@ -48,7 +48,7 @@ public class CardService(IUserRepository userRepository) : ICardService
             }
 
             // Prüfe, ob alle Karten dem User gehören
-            var missingCards = cardIds.Where(id => !userCards.Any(c => c.Id == id)).ToList();
+            var missingCards = cardIds.Where(id => userCards.All(c => c.Id != id)).ToList();
             if (missingCards.Any())
             {
                 throw new InvalidOperationException(

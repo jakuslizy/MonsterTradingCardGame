@@ -80,8 +80,8 @@ public class UserRepository(ICardRepository cardRepository) : IUserRepository
                 Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
                     ? null
                     : reader.GetString(reader.GetOrdinal("display_name")),
-                Bio = reader.IsDBNull(reader.GetOrdinal("bio")) 
-                    ? null 
+                Bio = reader.IsDBNull(reader.GetOrdinal("bio"))
+                    ? null
                     : reader.GetString(reader.GetOrdinal("bio")),
                 Image = reader.IsDBNull(reader.GetOrdinal("image"))
                     ? null
@@ -275,8 +275,8 @@ public class UserRepository(ICardRepository cardRepository) : IUserRepository
             Name = reader.IsDBNull(reader.GetOrdinal("display_name"))
                 ? null
                 : reader.GetString(reader.GetOrdinal("display_name")),
-            Bio = reader.IsDBNull(reader.GetOrdinal("bio")) 
-                ? null 
+            Bio = reader.IsDBNull(reader.GetOrdinal("bio"))
+                ? null
                 : reader.GetString(reader.GetOrdinal("bio")),
             Image = reader.IsDBNull(reader.GetOrdinal("image"))
                 ? null

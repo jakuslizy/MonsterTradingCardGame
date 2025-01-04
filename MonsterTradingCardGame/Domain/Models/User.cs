@@ -1,27 +1,18 @@
 namespace MonsterTradingCardGame.Domain.Models;
 
-public class User
+public class User(
+    string username,
+    string passwordHash,
+    int id = 0,
+    DateTime? createdAt = null,
+    int coins = 20)
 {
-    public int Id { get; set; }
-    public string Username { get; private set; }
-    public string PasswordHash { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+    public int Id { get; set; } = id;
+    public string Username { get; private set; } = username;
+    public string PasswordHash { get; private set; } = passwordHash;
+    public DateTime CreatedAt { get; private set; } = createdAt ?? DateTime.UtcNow;
     public string? Name { get; set; }
     public string? Bio { get; set; }
     public string? Image { get; set; }
-    public int Coins { get; set; }
-
-    public User(
-        string username,
-        string passwordHash,
-        int id = 0,
-        DateTime? createdAt = null,
-        int coins = 20)
-    {
-        Id = id;
-        Username = username;
-        PasswordHash = passwordHash;
-        CreatedAt = createdAt ?? DateTime.UtcNow;
-        Coins = coins;
-    }
+    public int Coins { get; set; } = coins;
 }

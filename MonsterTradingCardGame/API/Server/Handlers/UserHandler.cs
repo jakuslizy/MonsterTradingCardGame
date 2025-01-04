@@ -96,9 +96,9 @@ public class UserHandler(IUserService userService)
 
             var userData = new
             {
-                Username = user.Username,
-                CreatedAt = user.CreatedAt,
-                Coins = user.Coins,
+                user.Username,
+                user.CreatedAt,
+                user.Coins,
                 Name = user.Name ?? "",
                 Bio = user.Bio ?? "",
                 Image = user.Image ?? ""

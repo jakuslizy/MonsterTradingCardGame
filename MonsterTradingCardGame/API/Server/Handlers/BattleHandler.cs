@@ -11,7 +11,7 @@ public class BattleHandler(IBattleService battleService, BattleQueue battleQueue
     {
         try
         {
-            // Prüfen ob ein anderer Spieler wartet
+            // Prüfen, ob ein anderer Spieler wartet
             var waitingPlayer = battleQueue.GetWaitingPlayer();
 
             if (waitingPlayer == null)

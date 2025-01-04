@@ -1,6 +1,8 @@
+namespace MonsterTradingCardGame.API.Server.DTOs;
+
 public class UpdateUserDataDto
 {
-    public string? Name { get; set; }
-    public string? Bio { get; set; }
-    public string? Image { get; set; }
+    public string? Name { get; init; }
+    public string? Bio { get; init; }
+    public string? Image { get; init; }
 }

@@ -69,7 +69,7 @@ namespace MonsterTradingCardGame.API.Server
                 // Bild in Base64 konvertieren
                 string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "0_0.png");
                 string imageBase64 = Convert.ToBase64String(File.ReadAllBytes(imagePath));
-                
+
                 return new Response(200, $@"
                     <html>
                     <body style='text-align: center; font-family: Arial; background-color: #f0f0f0;'>

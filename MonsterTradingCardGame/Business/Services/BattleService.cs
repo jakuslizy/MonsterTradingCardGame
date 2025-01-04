@@ -16,7 +16,7 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
 
     public string ExecuteBattle(User player1, User player2)
     {
-        // Prüfen ob es verschiedene Spieler sind
+        // Prüfen, ob es verschiedene Spieler sind
         if (player1.Id == player2.Id)
         {
             throw new InvalidOperationException("Cannot battle against yourself");
