@@ -38,7 +38,20 @@ public class ProfileView
     </style>
 </head>
 <body>
-    <div class='container'>
+    <button class='hamburger' onclick='toggleSidebar()'>
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class='sidebar'>
+        <a href='/deck' class='nav-button'>Mein Deck</a>
+        <a href='/stats' class='nav-button'>Statistiken</a>
+        <a href='/trading' class='nav-button'>Handel</a>
+        <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>
+    </div>
+
+    <div class='container profile-container'>
         <h1>Mein Profil</h1>
         <div id='profileInfo'>
             <div class='profile-image-container'>
@@ -75,13 +88,6 @@ public class ProfileView
             </form>
         </div>
 
-        
-        <div class='button-group'>
-            <a href='/deck' class='cta-button'>Mein Deck</a>
-            <a href='/stats' class='cta-button'>Statistiken</a>
-            <a href='/trading' class='cta-button'>Handel</a>
-        </div>
-        <button onclick='logout()' class='cta-button'>Ausloggen</button>
         <a href='/' class='back-link'>← Zurück zur Startseite</a>
     </div>
 
@@ -179,6 +185,23 @@ public class ProfileView
         }
 
         loadProfile();
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const hamburger = document.querySelector('.hamburger');
+            sidebar.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        }
+
+        // Schließe Sidebar wenn außerhalb geklickt wird
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const hamburger = document.querySelector('.hamburger');
+            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>"; 

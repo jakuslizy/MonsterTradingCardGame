@@ -13,7 +13,7 @@ public class HomePageView
         _imagePath = Path.Combine(baseDirectory, "Assets", "images", "0_0.png");
         _cssPath = Path.Combine(baseDirectory, "Assets", "css", "style.css");
 
-        // Überprüfen Sie, ob die Dateien existieren
+        // Überprüfen, ob die Dateien existieren
         if (!File.Exists(_imagePath))
         {
             throw new FileNotFoundException($"Bilddatei nicht gefunden: {_imagePath}");
@@ -60,7 +60,7 @@ public class HomePageView
                     <a href='/login' class='cta-button'>Login</a>
                 </div>
 
-                <div class='features'>
+                <div class='homepage-features'>
                     <div class='feature-card'>
                         <h3>🎮 Spannendes Gameplay</h3>
                         <p>Erlebe epische Kartenduelle mit einzigartigen Monster- und Zauberkarten!</p>
