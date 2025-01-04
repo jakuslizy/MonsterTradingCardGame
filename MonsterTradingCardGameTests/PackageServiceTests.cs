@@ -126,4 +126,50 @@ public class PackageServiceTests
         TestContext.WriteLine($" {ex.Message}");
         Assert.That(ex.Message, Is.EqualTo("Package must contain exactly 5 cards"));
     }
+
+    [Test]
+    public void CreatePackage_InvalidCardType_ThrowsArgumentException()
+    {
+        TestContext.WriteLine("Test: Erstelle Paket mit ungültigem Kartentyp");
+
+        var invalidJson = @"[
+            {""Id"":""1"",""Name"":""InvalidCard"",""Damage"":10},
+            {""Id"":""2"",""Name"":""FireSpell"",""Damage"":20},
+            {""Id"":""3"",""Name"":""Dragon"",""Damage"":30},
+            {""Id"":""4"",""Name"":""Knight"",""Damage"":40},
+            {""Id"":""5"",""Name"":""WaterSpell"",""Damage"":50}
+        ]";
+        TestContext.WriteLine("JSON-Eingabe mit ungültigem Kartentyp vorbereitet");
+
+        // Mock für CardService konfigurieren
+        _cardService.CreateCard(Arg.Any<string>(), Arg.Is<string>(x => x == "InvalidCard"), Arg.Any<int>(),
+                Arg.Any<ElementType>())
+            .Returns(_ => throw new ArgumentException("Invalid card type: InvalidCard"));
+        TestContext.WriteLine("CardService Mock konfiguriert für Fehlerfall");
+
+        // Act & Assert
+        TestContext.WriteLine("Versuche Paket zu erstellen...");
+        var ex = Assert.Throws<ArgumentException>(() =>
+            _packageService.CreatePackage(invalidJson, "admin")
+        );
+        TestContext.WriteLine($"Exception erhalten: {ex.Message}");
+        Assert.That(ex.Message, Is.EqualTo("Invalid card type: InvalidCard"));
+    }
+
+    [Test]
+    public void CreatePackage_EmptyJson_ThrowsArgumentException()
+    {
+        TestContext.WriteLine("Test: Erstelle Paket mit leerem JSON");
+
+        var emptyJson = "[]";
+        TestContext.WriteLine($"Leere JSON-Eingabe: '{emptyJson}'");
+
+        // Act & Assert
+        TestContext.WriteLine("Versuche Paket zu erstellen...");
+        var ex = Assert.Throws<ArgumentException>(
+            () => _packageService.CreatePackage(emptyJson, "admin")
+        );
+        TestContext.WriteLine($"Exception erhalten: {ex.Message}");
+        Assert.That(ex.Message, Is.EqualTo("Package must contain exactly 5 cards"));
+    }
 }

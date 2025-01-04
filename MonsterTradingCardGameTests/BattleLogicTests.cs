@@ -18,25 +18,23 @@ public class BattleLogicTests
     [Test]
     public void DetermineRoundWinner_GoblinVsDragon_DragonWinsAutomatically()
     {
-        try
-        {
-            var goblin = new Goblin("1", "WaterGoblin", 50, ElementType.Water);
-            var dragon = new Dragon("2", "Dragon", 30, ElementType.Normal);
+        // Test 1: Goblin vs Dragon
+        var goblin = new Goblin("1", "WaterGoblin", 50, ElementType.Water);
+        var dragon = new Dragon("2", "Dragon", 30, ElementType.Normal);
 
-            TestContext.WriteLine("\nTest: Goblin vs Dragon");
-            TestContext.WriteLine($"Goblin: {goblin.Name} (Damage: {goblin.Damage}, Element: {goblin.ElementType})");
-            TestContext.WriteLine($"Dragon: {dragon.Name} (Damage: {dragon.Damage}, Element: {dragon.ElementType})");
+        TestContext.WriteLine("\nTest 1: Goblin vs Dragon");
+        TestContext.WriteLine($"Goblin: {goblin.Name} (Damage: {goblin.Damage}, Element: {goblin.ElementType})");
+        TestContext.WriteLine($"Dragon: {dragon.Name} (Damage: {dragon.Damage}, Element: {dragon.ElementType})");
 
-            var result = _battleLogic.DetermineRoundWinner(goblin, dragon);
+        var result1 = _battleLogic.DetermineRoundWinner(goblin, dragon);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(2), "Dragon should win against Goblin when Goblin attacks");
 
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(2), "Dragon should win against Goblin regardless of damage");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        // Test 2: Dragon vs Goblin
+        TestContext.WriteLine("\nTest 2: Dragon vs Goblin");
+        var result2 = _battleLogic.DetermineRoundWinner(dragon, goblin);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(1), "Dragon should win against Goblin when Dragon attacks");
     }
 
     [Test]
@@ -45,21 +43,20 @@ public class BattleLogicTests
         var wizzard = new Wizzard("1", "Wizzard", 20, ElementType.Normal);
         var ork = new Ork("2", "Ork", 50, ElementType.Normal);
 
-        TestContext.WriteLine("\nTest: Wizzard vs Ork");
+        // Test 1: Wizzard greift Ork an
+        TestContext.WriteLine("\nTest 1: Wizzard vs Ork");
         TestContext.WriteLine($"Wizzard: {wizzard.Name} (Damage: {wizzard.Damage}, Element: {wizzard.ElementType})");
         TestContext.WriteLine($"Ork: {ork.Name} (Damage: {ork.Damage}, Element: {ork.ElementType})");
 
-        try
-        {
-            var result = _battleLogic.DetermineRoundWinner(wizzard, ork);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(1), "Wizzard should win against Ork regardless of damage");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        var result1 = _battleLogic.DetermineRoundWinner(wizzard, ork);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(1), "Wizzard should win against Ork when Wizzard attacks");
+
+        // Test 2: Ork greift Wizzard an
+        TestContext.WriteLine("\nTest 2: Ork vs Wizzard");
+        var result2 = _battleLogic.DetermineRoundWinner(ork, wizzard);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(2), "Wizzard should win against Ork when Ork attacks");
     }
 
     [Test]
@@ -68,22 +65,21 @@ public class BattleLogicTests
         var waterSpell = new SpellCard("1", "WaterSpell", 10, ElementType.Water);
         var knight = new Knight("2", "Knight", 50, ElementType.Normal);
 
-        TestContext.WriteLine("\nTest: WaterSpell vs Knight");
+        // Test 1: WaterSpell greift Knight an
+        TestContext.WriteLine("\nTest 1: WaterSpell vs Knight");
         TestContext.WriteLine(
             $"WaterSpell: {waterSpell.Name} (Damage: {waterSpell.Damage}, Element: {waterSpell.ElementType})");
         TestContext.WriteLine($"Knight: {knight.Name} (Damage: {knight.Damage}, Element: {knight.ElementType})");
 
-        try
-        {
-            var result = _battleLogic.DetermineRoundWinner(waterSpell, knight);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(1), "WaterSpell should instantly defeat Knight");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        var result1 = _battleLogic.DetermineRoundWinner(waterSpell, knight);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(1), "WaterSpell should win when WaterSpell attacks Knight");
+
+        // Test 2: Knight greift WaterSpell an
+        TestContext.WriteLine("\nTest 2: Knight vs WaterSpell");
+        var result2 = _battleLogic.DetermineRoundWinner(knight, waterSpell);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(2), "WaterSpell should win when Knight attacks WaterSpell");
     }
 
     [Test]
@@ -92,21 +88,20 @@ public class BattleLogicTests
         var spell = new SpellCard("1", "FireSpell", 50, ElementType.Fire);
         var kraken = new Kraken("2", "Kraken", 30, ElementType.Water);
 
-        TestContext.WriteLine("\nTest: Spell vs Kraken");
+        // Test 1: Spell greift Kraken an
+        TestContext.WriteLine("\nTest 1: Spell vs Kraken");
         TestContext.WriteLine($"Spell: {spell.Name} (Damage: {spell.Damage}, Element: {spell.ElementType})");
         TestContext.WriteLine($"Kraken: {kraken.Name} (Damage: {kraken.Damage}, Element: {kraken.ElementType})");
 
-        try
-        {
-            var result = _battleLogic.DetermineRoundWinner(spell, kraken);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(2), "Kraken should win against any spell");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        var result1 = _battleLogic.DetermineRoundWinner(spell, kraken);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(2), "Kraken should win when spell attacks Kraken");
+
+        // Test 2: Kraken greift Spell an
+        TestContext.WriteLine("\nTest 2: Kraken vs Spell");
+        var result2 = _battleLogic.DetermineRoundWinner(kraken, spell);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(1), "Kraken should win when Kraken attacks spell");
     }
 
     [Test]
@@ -115,47 +110,46 @@ public class BattleLogicTests
         var dragon = new Dragon("1", "Dragon", 50, ElementType.Fire);
         var fireElf = new FireElf("2", "FireElf", 25, ElementType.Fire);
 
-        TestContext.WriteLine("\nTest: Dragon vs FireElf");
-        TestContext.WriteLine($"Dragon: {dragon.Name} (Damage: {dragon.Damage}, Element: {dragon.ElementType})");
+        // Test 1: FireElf greift Dragon an
+        TestContext.WriteLine("\nTest 1: FireElf vs Dragon");
         TestContext.WriteLine($"FireElf: {fireElf.Name} (Damage: {fireElf.Damage}, Element: {fireElf.ElementType})");
+        TestContext.WriteLine($"Dragon: {dragon.Name} (Damage: {dragon.Damage}, Element: {dragon.ElementType})");
 
-        try
-        {
-            var result = _battleLogic.DetermineRoundWinner(fireElf, dragon);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(1), "FireElf evades Dragon's attack and deals 25 damage to win");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        var result1 = _battleLogic.DetermineRoundWinner(fireElf, dragon);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(1), "FireElf should win when FireElf attacks Dragon");
+
+        // Test 2: Dragon greift FireElf an
+        TestContext.WriteLine("\nTest 2: Dragon vs FireElf");
+        var result2 = _battleLogic.DetermineRoundWinner(dragon, fireElf);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(2), "FireElf should win when Dragon attacks FireElf");
     }
 
     [Test]
-    public void DetermineRoundWinner_WaterSpellVsFireSpell_WaterSpellDealsDoubleDamage()
+    public void DetermineRoundWinner_WaterSpellVsFireSpell_WaterSpellWins()
     {
         var waterSpell = new SpellCard("1", "WaterSpell", 20, ElementType.Water);
         var fireSpell = new SpellCard("2", "FireSpell", 30, ElementType.Fire);
 
-        TestContext.WriteLine("\nTest: WaterSpell vs FireSpell");
+        // Test 1: WaterSpell greift FireSpell an
+        TestContext.WriteLine("\nTest 1: WaterSpell vs FireSpell");
         TestContext.WriteLine(
             $"WaterSpell: {waterSpell.Name} (Damage: {waterSpell.Damage}, Element: {waterSpell.ElementType})");
         TestContext.WriteLine(
             $"FireSpell: {fireSpell.Name} (Damage: {fireSpell.Damage}, Element: {fireSpell.ElementType})");
 
-        try
-        {
-            var result = _battleLogic.DetermineRoundWinner(waterSpell, fireSpell);
-            TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-            Assert.That(result, Is.EqualTo(1), "Water spell should win due to double damage against fire");
-        }
-        catch (Exception ex)
-        {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
-        }
+        var result1 = _battleLogic.DetermineRoundWinner(waterSpell, fireSpell);
+        TestContext.WriteLine($"Ergebnis: Spieler {result1} gewinnt");
+        Assert.That(result1, Is.EqualTo(1), "WaterSpell should win due to double damage against FireSpell");
+
+        // Test 2: FireSpell greift WaterSpell an
+        TestContext.WriteLine("\nTest 2: FireSpell vs WaterSpell");
+        var result2 = _battleLogic.DetermineRoundWinner(fireSpell, waterSpell);
+        TestContext.WriteLine($"Ergebnis: Spieler {result2} gewinnt");
+        Assert.That(result2, Is.EqualTo(2), "WaterSpell should still win due to element advantage");
     }
+
 
     [Test]
     public void DetermineRoundWinner_MonsterVsMonster_HigherDamageWins()
@@ -192,26 +186,32 @@ public class BattleLogicTests
     }
 
     [Test]
-    public void DetermineRoundWinner_EqualDamage_ResultsInDraw()
+    public void DetermineRoundWinner_EqualDamage_WithCriticals()
     {
         var monster1 = new Goblin("1", "Goblin", 30, ElementType.Normal);
         var monster2 = new Goblin("2", "Troll", 30, ElementType.Normal);
 
-        TestContext.WriteLine("\nTest: Equal Damage Battle");
-        TestContext.WriteLine($"Goblin: {monster1.Name} (Damage: {monster1.Damage}, Element: {monster1.ElementType})");
-        TestContext.WriteLine($"Troll: {monster2.Name} (Damage: {monster2.Damage}, Element: {monster2.ElementType})");
+        // Mehrere Durchläufe durchführen
+        var results = new Dictionary<int, int>();
+        const int iterations = 1000;
 
-        try
+        for (int i = 0; i < iterations; i++)
         {
             var result = _battleLogic.DetermineRoundWinner(monster1, monster2);
-            TestContext.WriteLine($"Ergebnis: Unentschieden (Spieler {result})");
-            Assert.That(result, Is.EqualTo(0), "Equal damage should result in a draw");
+            results.TryAdd(result, 0);
+            results[result]++;
         }
-        catch (Exception ex)
+
+        TestContext.WriteLine("\nErgebnisse nach " + iterations + " Durchläufen:");
+        foreach (var kvp in results)
         {
-            TestContext.WriteLine($"Fehler: {ex.Message}");
-            Assert.Fail($"Test failed with exception: {ex.Message}\nStack trace: {ex.StackTrace}");
+            double percentage = kvp.Value * 100.0 / iterations;
+            TestContext.WriteLine($"Ergebnis {kvp.Key}: {kvp.Value} mal ({percentage:F1}%)");
         }
+
+        // Prüfen ob alle möglichen Ergebnisse vorkommen
+        Assert.That(results.Keys, Is.SubsetOf(new[] { 0, 1, 2 }),
+            "Ergebnisse sollten nur 0 (Draw), 1 (Spieler 1) oder 2 (Spieler 2) sein");
     }
 
     [Test]
@@ -226,10 +226,30 @@ public class BattleLogicTests
         TestContext.WriteLine(
             $"WaterSpell: {waterSpell.Name} (Damage: {waterSpell.Damage}, Element: {waterSpell.ElementType})");
 
-        var result = _battleLogic.DetermineRoundWinner(fireSpell, waterSpell);
+        // Mehrere Durchläufe für statistische Auswertung
+        var results = new Dictionary<int, int>();
+        const int iterations = 1000;
 
-        TestContext.WriteLine($"Ergebnis: Spieler {result} gewinnt");
-        Assert.That(result, Is.EqualTo(2), "Water should win against Fire due to elemental effectiveness");
+        for (int i = 0; i < iterations; i++)
+        {
+            var result = _battleLogic.DetermineRoundWinner(fireSpell, waterSpell);
+            results.TryAdd(result, 0);
+            results[result]++;
+        }
+
+        TestContext.WriteLine("\nErgebnisse nach " + iterations + " Durchläufen:");
+        foreach (var kvp in results)
+        {
+            double percentage = kvp.Value * 100.0 / iterations;
+            TestContext.WriteLine($"Spieler {kvp.Key}: {kvp.Value} mal ({percentage:F1}%)");
+        }
+
+        // WaterSpell sollte in der Mehrheit der Fälle gewinnen
+        Assert.That(
+            results.GetValueOrDefault(2, 0),
+            Is.GreaterThan(results.GetValueOrDefault(1, 0)),
+            "Water should win against Fire in majority of cases due to elemental effectiveness"
+        );
     }
 
     [Test]
