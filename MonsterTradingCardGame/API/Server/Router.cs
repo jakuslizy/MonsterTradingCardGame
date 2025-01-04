@@ -2,6 +2,7 @@ using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.API.Server.Handlers;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
+using MonsterTradingCardGame.API.Server.Views;
 
 namespace MonsterTradingCardGame.API.Server
 {
@@ -66,20 +67,8 @@ namespace MonsterTradingCardGame.API.Server
 
             if (method == "GET" && path == "/")
             {
-                // Bild in Base64 konvertieren
-                string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "0_0.png");
-                string imageBase64 = Convert.ToBase64String(File.ReadAllBytes(imagePath));
-
-                return new Response(200, $@"
-                    <html>
-                    <body style='text-align: center; font-family: Arial; background-color: #f0f0f0;'>
-                        <h1 style='color: #333;'>Willkommen beim Monster Trading Card Game</h1>
-                        <img src='data:image/png;base64,{imageBase64}' 
-                             alt='MTCG Logo' 
-                             style='max-width: 500px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>
-                    </body>
-                    </html>",
-                    "text/html");
+                var homePageView = new HomePageView();
+                return homePageView.Render();
             }
 
             // Alle anderen Routen sind geschützt
