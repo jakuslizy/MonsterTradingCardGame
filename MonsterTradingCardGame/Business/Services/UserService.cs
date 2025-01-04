@@ -118,4 +118,9 @@ public class UserService(
 
         return stats;
     }
+
+    public void LogoutUser(string token)
+    {
+        sessionRepository.DeleteSession(token);
+    }
 }

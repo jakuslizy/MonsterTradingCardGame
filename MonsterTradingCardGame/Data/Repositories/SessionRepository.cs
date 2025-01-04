@@ -55,4 +55,14 @@ public class SessionRepository : ISessionRepository
         DataLayer.AddParameterWithValue(command, "@now", DbType.DateTime, DateTime.UtcNow);
         command.ExecuteNonQuery();
     }
+
+    public void DeleteSession(string token)
+    {
+        using var connection = _dal.CreateConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM sessions WHERE token = @token";
+        
+        DataLayer.AddParameterWithValue(command, "@token", DbType.String, token);
+        command.ExecuteNonQuery();
+    }
 }

@@ -13,4 +13,5 @@ public interface IUserService
     User GetUserData(string username);
     void UpdateUserData(string username, string? name, string? bio, string? image);
     Stats GetUserStats(int userId);
+    void LogoutUser(string token);
 }

@@ -7,4 +7,5 @@ public interface ISessionRepository
     void CreateSession(Session session);
     Session? GetSessionByToken(string token);
     void DeleteExpiredSessions();
+    void DeleteSession(string token);
 }

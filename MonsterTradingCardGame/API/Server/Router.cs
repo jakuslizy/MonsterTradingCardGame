@@ -83,6 +83,24 @@ namespace MonsterTradingCardGame.API.Server
                 return loginView.Render();
             }
 
+            if (method == "GET" && path == "/profile")
+            {
+                var profileView = new ProfileView();
+                return profileView.Render();
+            }
+
+            if (method == "DELETE" && path == "/sessions")
+            {
+                if (!headers.TryGetValue("Authorization", out var authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return new Response(401, "Unauthorized", "application/json");
+                }
+
+                var token = authHeader.Substring("Bearer ".Length);
+                userService.LogoutUser(token);
+                return new Response(200, "Logged out successfully", "application/json");
+            }
+
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);
         }

@@ -74,8 +74,7 @@ public class LoginView
                         if (response.ok) {{
                             const token = await response.text();
                             localStorage.setItem('token', token);
-                            alert('Login erfolgreich!');
-                            window.location.href = '/';
+                            window.location.href = '/profile';
                         }} else {{
                             const error = await response.text();
                             alert('Fehler beim Login: ' + error);
