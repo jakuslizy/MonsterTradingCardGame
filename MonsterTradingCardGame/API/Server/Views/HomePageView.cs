@@ -61,15 +61,15 @@ public class HomePageView
                 </div>
 
                 <div class='homepage-features'>
-                    <div class='feature-card'>
+                    <div class='card game-feature-card'>
                         <h3>🎮 Spannendes Gameplay</h3>
                         <p>Erlebe epische Kartenduelle mit einzigartigen Monster- und Zauberkarten!</p>
                     </div>
-                    <div class='feature-card'>
+                    <div class='card game-feature-card'>
                         <h3>🏆 Wettbewerb</h3>
                         <p>Tritt gegen andere Spieler an und steige in der Rangliste auf!</p>
                     </div>
-                    <div class='feature-card'>
+                    <div class='card game-feature-card'>
                         <h3>💎 Seltene Karten</h3>
                         <p>Sammle und handle mit wertvollen Karten, um dein Deck zu verstärken.</p>
                     </div>

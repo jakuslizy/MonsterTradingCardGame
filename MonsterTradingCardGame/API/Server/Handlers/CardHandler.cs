@@ -68,7 +68,15 @@ public class CardHandler(ICardService cardService)
     {
         try
         {
+            if (user == null)
+            {
+                return new Response(401, 
+                    JsonSerializer.Serialize(new { message = "Authentication required" }), 
+                    "application/json");
+            }
+
             var deck = cardService.GetUserDeck(user);
+            
             if (!deck.Any())
             {
                 return new Response(200, "[]", "application/json");
@@ -80,43 +88,34 @@ public class CardHandler(ICardService cardService)
                 var plainText = new StringBuilder();
                 plainText.AppendLine($"=== Deck von {user.Username} ===\n");
 
-                var sortedDeck = deck.OrderBy(c => c.Id);
-                int counter = 1;
-
-                foreach (var card in sortedDeck)
+                foreach (var card in deck)
                 {
-                    plainText.AppendLine(
-                        $"Karte {counter}: {card.Name}" +
-                        $"\n   ID: {card.Id}" +
-                        $"\n   Schaden: {card.Damage}" +
-                        $"\n   Element: {card.ElementType}\n");
-                    counter++;
+                    plainText.AppendLine($"{card.Name}: {card.Damage} Schaden");
                 }
 
                 return new Response(200, plainText.ToString(), "text/plain");
             }
 
-            // JSON Format (mit Einrückung)
-            var deckResponse = deck.Select((card, index) => new
-                {
-                    Number = index + 1,
-                    card.Id,
-                    card.Name,
-                    card.Damage,
-                    Element = card.ElementType.ToString()
-                })
-                .OrderBy(c => c.Number)
-                .ToList();
+            // JSON Format
+            var deckResponse = deck.Select(card => new
+            {
+                Id = card.Id,
+                Name = card.Name,
+                Damage = card.Damage,
+                Element = card.ElementType.ToString()
+            }).ToList();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            return new Response(200,
-                JsonSerializer.Serialize(deckResponse, options),
+            return new Response(200, 
+                JsonSerializer.Serialize(deckResponse, options), 
                 "application/json");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error in HandleGetDeck: {ex}");
-            return new Response(500, "Internal server error", "application/json");
+            return new Response(500, 
+                JsonSerializer.Serialize(new { message = "Internal server error" }), 
+                "application/json");
         }
     }
 

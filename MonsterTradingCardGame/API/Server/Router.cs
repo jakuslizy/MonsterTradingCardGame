@@ -83,12 +83,6 @@ namespace MonsterTradingCardGame.API.Server
                 return loginView.Render();
             }
 
-            if (method == "GET" && path == "/deck")
-            {
-                var deckView = new DeckView();
-                return deckView.Render();
-            }
-
             if (method == "GET" && path == "/profile")
             {
                 var profileView = new ProfileView();
