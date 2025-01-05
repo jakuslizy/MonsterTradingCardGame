@@ -107,6 +107,13 @@ namespace MonsterTradingCardGame.API.Server
                 return new Response(200, "Logged out successfully", "application/json");
             }
 
+            
+            if (method == "GET" && path == "/stats.html")
+            {
+                var statsView = new StatsView();
+                return statsView.Render();
+            }
+
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);
         }

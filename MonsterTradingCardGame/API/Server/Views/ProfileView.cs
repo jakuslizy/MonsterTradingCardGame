@@ -47,7 +47,7 @@ public class ProfileView
     <div class='sidebar'>
         <a href='/deck' class='nav-button'>Mein Deck</a>
         <a href='/shop' class='nav-button'>Shop</a>
-        <a href='/stats' class='nav-button'>Statistiken</a>
+        <a href='/stats.html' class='nav-button'>Statistiken</a>
         <a href='/trading' class='nav-button'>Handel</a>
         <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>
     </div>
