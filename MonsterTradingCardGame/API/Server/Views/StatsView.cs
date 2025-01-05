@@ -141,11 +141,17 @@ public class StatsView
                     scoreboardData.forEach((player, index) => {
                         const playerDiv = document.createElement('div');
                         playerDiv.className = 'scoreboard-item';
+                        
+                        // Berechne die Siege aus der Winrate und GamesPlayed
+                        const winRate = parseFloat(player.WinRate) || 0;
+                        const gamesPlayed = player.GamesPlayed || 0;
+                        const wins = Math.round((winRate * gamesPlayed) / 100);
+                        
                         playerDiv.innerHTML = `
                             <span class='rank'>#${index + 1}</span>
                             <span class='player-name'>${player.Name || player.Username || 'Unbekannt'}</span>
                             <span class='player-elo'>Elo: ${player.Elo || '0'}</span>
-                            <span class='player-wins'>Siege: ${player.Wins || '0'}</span>
+                            <span class='player-wins'>Siege: ${wins}</span>
                         `;
                         scoreboardContainer.appendChild(playerDiv);
                     });
