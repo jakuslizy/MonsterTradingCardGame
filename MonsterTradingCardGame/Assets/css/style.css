@@ -169,19 +169,19 @@ input:focus {
     .container {
         width: 90%;
     }
-    
+
     h1 {
         font-size: 2em;
     }
-    
+
     .feature-card {
         padding: 20px;
     }
-    
+
     .features {
         grid-template-columns: 1fr;
     }
-    
+
     input {
         padding: 12px;
     }
@@ -331,7 +331,7 @@ input:focus {
     .wide-container {
         width: 95%;
     }
-    
+
     .wide-container .profile-details,
     .wide-container .button-group,
     .wide-container #editForm {
@@ -493,7 +493,7 @@ input:focus {
     border-radius: 15px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s;
 }
 
@@ -629,7 +629,7 @@ input:focus {
     background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
     border-radius: 15px;
     padding: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stats-details p {
@@ -705,7 +705,7 @@ input:focus {
     border-radius: 15px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     border: 2px solid transparent;
 }
@@ -717,7 +717,7 @@ input:focus {
 
 .deck-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .deck-card h3 {

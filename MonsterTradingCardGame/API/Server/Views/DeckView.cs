@@ -11,11 +11,11 @@ public class DeckView
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         _cssPath = Path.Combine(baseDirectory, "Assets", "css", "style.css");
-        
+
         // Initialisiere Image Cache
         _imageCache = new Dictionary<string, string>();
         var imagesPath = Path.Combine(baseDirectory, "Assets", "images");
-        
+
         // Lade alle Bilder in den Cache
         foreach (var imagePath in Directory.GetFiles(imagesPath, "*.png"))
         {

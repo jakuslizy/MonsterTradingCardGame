@@ -206,5 +206,5 @@ public class ProfileView
         });
     </script>
 </body>
-</html>"; 
+</html>";
 }

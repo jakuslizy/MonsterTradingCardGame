@@ -209,4 +209,4 @@ public class StatsView
     </script>
 </body>
 </html>";
-} 
+}

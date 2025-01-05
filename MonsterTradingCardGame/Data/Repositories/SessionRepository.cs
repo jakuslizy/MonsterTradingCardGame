@@ -61,7 +61,7 @@ public class SessionRepository : ISessionRepository
         using var connection = _dal.CreateConnection();
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM sessions WHERE token = @token";
-        
+
         DataLayer.AddParameterWithValue(command, "@token", DbType.String, token);
         command.ExecuteNonQuery();
     }

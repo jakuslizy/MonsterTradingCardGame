@@ -70,13 +70,13 @@ public class CardHandler(ICardService cardService)
         {
             if (user == null)
             {
-                return new Response(401, 
-                    JsonSerializer.Serialize(new { message = "Authentication required" }), 
+                return new Response(401,
+                    JsonSerializer.Serialize(new { message = "Authentication required" }),
                     "application/json");
             }
 
             var deck = cardService.GetUserDeck(user);
-            
+
             if (!deck.Any())
             {
                 return new Response(200, "[]", "application/json");
@@ -99,22 +99,22 @@ public class CardHandler(ICardService cardService)
             // JSON Format
             var deckResponse = deck.Select(card => new
             {
-                Id = card.Id,
-                Name = card.Name,
-                Damage = card.Damage,
+                card.Id,
+                card.Name,
+                card.Damage,
                 Element = card.ElementType.ToString()
             }).ToList();
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            return new Response(200, 
-                JsonSerializer.Serialize(deckResponse, options), 
+            return new Response(200,
+                JsonSerializer.Serialize(deckResponse, options),
                 "application/json");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error in HandleGetDeck: {ex}");
-            return new Response(500, 
-                JsonSerializer.Serialize(new { message = "Internal server error" }), 
+            return new Response(500,
+                JsonSerializer.Serialize(new { message = "Internal server error" }),
                 "application/json");
         }
     }

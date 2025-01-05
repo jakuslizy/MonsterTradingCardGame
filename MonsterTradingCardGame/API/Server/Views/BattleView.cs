@@ -268,4 +268,4 @@ public class BattleView
     </script>
 </body>
 </html>";
-} 
+}

@@ -2,7 +2,6 @@ using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Data.Repositories.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
-using System.Text.Json;
 
 namespace MonsterTradingCardGame.API.Server.Handlers
 {
@@ -69,12 +68,14 @@ namespace MonsterTradingCardGame.API.Server.Handlers
             try
             {
                 var availablePackages = packageRepository.GetAvailablePackages();
-                if (availablePackages == null || !availablePackages.Any())
+                var enumerable = availablePackages as Package[] ?? availablePackages.ToArray();
+                if (!enumerable.Any())
                 {
                     return new Response(200, "[]", "application/json");
                 }
-                
-                return new Response(200, System.Text.Json.JsonSerializer.Serialize(availablePackages), "application/json");
+
+                return new Response(200, System.Text.Json.JsonSerializer.Serialize(enumerable),
+                    "application/json");
             }
             catch (Exception ex)
             {

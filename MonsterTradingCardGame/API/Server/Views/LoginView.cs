@@ -86,4 +86,4 @@ public class LoginView
             </script>
         </body>
         </html>";
-} 
+}

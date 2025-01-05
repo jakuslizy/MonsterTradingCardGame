@@ -228,4 +228,4 @@ public class ShopView
     </script>
 </body>
 </html>";
-} 
+}

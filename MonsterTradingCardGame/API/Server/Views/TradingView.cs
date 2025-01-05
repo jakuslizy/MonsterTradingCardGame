@@ -14,7 +14,7 @@ public class TradingView
         // Initialisiere Image Cache
         _imageCache = new Dictionary<string, string>();
         var imagesPath = Path.Combine(baseDirectory, "Assets", "images");
-        
+
         // Lade alle Monsterbilder
         for (int i = 1; i <= 8; i++)
         {
@@ -420,4 +420,4 @@ public class TradingView
     </script>
 </body>
 </html>";
-} 
+}
