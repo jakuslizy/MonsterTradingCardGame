@@ -114,6 +114,11 @@ namespace MonsterTradingCardGame.API.Server
                 return statsView.Render();
             }
 
+            if (method == "GET" && path == "/deck.html")
+            {
+                return new DeckView().Render();
+            }
+
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);
         }

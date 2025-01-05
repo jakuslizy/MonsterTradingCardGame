@@ -2,11 +2,11 @@ using MonsterTradingCardGame.API.Server.DTOs;
 
 namespace MonsterTradingCardGame.API.Server.Views;
 
-public class ShopView
+public class DeckView
 {
     private readonly string _cssPath;
 
-    public ShopView()
+    public DeckView()
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         _cssPath = Path.Combine(baseDirectory, "Assets", "css", "style.css");
@@ -32,7 +32,7 @@ public class ShopView
 <html>
 <head>
     <meta charset='UTF-8'>
-    <title>MTCG - Shop</title>
+    <title>MTCG - Mein Deck</title>
     <style>
         " + cssContent + @"
     </style>
@@ -46,36 +46,38 @@ public class ShopView
 
     <div class='sidebar'>
         <a href='/profile' class='nav-button'>Mein Profil</a>
-        <a href='/deck.html' class='nav-button'>Mein Deck</a>
+        <a href='/shop' class='nav-button'>Shop</a>
         <a href='/stats.html' class='nav-button'>Statistiken</a>
         <a href='/trading' class='nav-button'>Handel</a>
         <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>
     </div>
 
-    <div class='container shop-container'>
-        <h1>Kartenpaket-Shop</h1>
+    <div class='container'>
+        <h1>Mein Deck</h1>
         
-        <div class='shop-info'>
-            <p>Ein Paket kostet 5 Münzen und enthält 5 zufällige Karten.</p>
-            <p>Deine Münzen: <span id='userCoins'>Lade...</span></p>
-            <button onclick='buyPackage()' class='cta-button'>Paket kaufen</button>
-        </div>
-
-        <div class='package-section'>
-            <div class='package-preview'>
-                <h2>Verfügbare Pakete</h2>
-                <div id='availablePackages' class='packages-container'>
-                    <!-- Pakete werden hier dynamisch eingefügt -->
-                </div>
+        <div class='card-grid'>
+            <div id='deckCards' class='deck-cards-container'>
+                <!-- Karten werden hier dynamisch eingefügt -->
             </div>
         </div>
 
+        <div class='card-grid'>
+            <h2>Verfügbare Karten</h2>
+            <div id='availableCards' class='deck-cards-container'>
+                <!-- Verfügbare Karten werden hier dynamisch eingefügt -->
+            </div>
+        </div>
+
+        <button onclick='saveDeck()' class='cta-button'>Deck speichern</button>
         <div id='message' class='message' style='display: none;'></div>
+        
         <a href='/' class='back-link'>← Zurück zur Startseite</a>
     </div>
 
     <script>
-        async function loadUserCoins() {
+        let selectedCards = new Set();
+        
+        async function loadCards() {
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = '/login';
@@ -83,94 +85,101 @@ public class ShopView
             }
 
             try {
-                const username = token.split('-')[0];
-                const response = await fetch('/users/' + username, {
+                // Lade alle Karten des Users
+                const cardsResponse = await fetch('/cards', {
                     headers: {
                         'Authorization': 'Bearer ' + token
                     }
                 });
-                const userData = await response.json();
-                document.getElementById('userCoins').textContent = userData.Coins;
-            } catch (error) {
-                showMessage('Fehler beim Laden der Münzen: ' + error, 'error');
-            }
-        }
-
-        async function loadAvailablePackages() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login';
-                return;
-            }
-
-            try {
-                const response = await fetch('/packages/available', {
+                
+                // Lade aktuelles Deck
+                const deckResponse = await fetch('/deck', {
                     headers: {
                         'Authorization': 'Bearer ' + token
                     }
                 });
 
-                if (response.ok) {
-                    const packages = await response.json();
-                    const container = document.getElementById('availablePackages');
-                    container.innerHTML = '';
-
-                    if (!packages || packages.length === 0) {
-                        container.innerHTML = '<p>Aktuell keine Pakete verfügbar.</p>';
-                        return;
-                    }
-
-                    packages.forEach((pack, index) => {
-                        const packageDiv = document.createElement('div');
-                        packageDiv.className = 'package-item';
-                        packageDiv.innerHTML = `
-                            <div class='package-card'>
-                                <h3>Paket ${index + 1}</h3>
-                                <div class='package-info'>
-                                    <p>📦 5 Karten</p>
-                                    <p>💰 5 Münzen</p>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(packageDiv);
+                if (cardsResponse.ok && deckResponse.ok) {
+                    const allCards = await cardsResponse.json();
+                    const deckCards = await deckResponse.json();
+                    
+                    // Setze die ausgewählten Karten
+                    selectedCards = new Set(deckCards.map(card => card.Id));
+                    
+                    // Zeige Deck-Karten
+                    const deckContainer = document.getElementById('deckCards');
+                    deckContainer.innerHTML = '';
+                    deckCards.forEach(card => {
+                        deckContainer.appendChild(createCardElement(card, true));
                     });
-                } else {
-                    console.error('Fehler beim Laden der Pakete:', response.status);
-                    showMessage('Fehler beim Laden der Pakete', 'error');
+                    
+                    // Zeige verfügbare Karten
+                    const availableContainer = document.getElementById('availableCards');
+                    availableContainer.innerHTML = '';
+                    const availableCards = allCards.filter(card => !selectedCards.has(card.Id));
+                    availableCards.forEach(card => {
+                        availableContainer.appendChild(createCardElement(card, false));
+                    });
                 }
             } catch (error) {
-                console.error('Fehler beim Laden der Pakete:', error);
-                showMessage('Fehler beim Laden der Pakete: ' + error, 'error');
+                showMessage('Fehler beim Laden der Karten: ' + error, 'error');
             }
         }
 
-        async function buyPackage() {
+        function createCardElement(card, inDeck) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'deck-card' + (inDeck ? ' selected' : '');
+            cardDiv.onclick = () => toggleCard(card.Id, cardDiv);
+            cardDiv.innerHTML = `
+                <h3>${card.Name}</h3>
+                <p>Schaden: ${card.Damage}</p>
+                <p>Element: ${card.ElementType || 'Normal'}</p>
+            `;
+            return cardDiv;
+        }
+
+        function toggleCard(cardId, cardElement) {
+            if (selectedCards.has(cardId)) {
+                selectedCards.delete(cardId);
+                cardElement.classList.remove('selected');
+            } else if (selectedCards.size < 4) {
+                selectedCards.add(cardId);
+                cardElement.classList.add('selected');
+            } else {
+                showMessage('Maximal 4 Karten im Deck erlaubt!', 'error');
+            }
+        }
+
+        async function saveDeck() {
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = '/login';
                 return;
             }
 
+            if (selectedCards.size !== 4) {
+                showMessage('Das Deck muss genau 4 Karten enthalten!', 'error');
+                return;
+            }
+
             try {
-                const response = await fetch('/transactions/packages', {
-                    method: 'POST',
+                const response = await fetch('/deck', {
+                    method: 'PUT',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
-                    }
+                    },
+                    body: JSON.stringify(Array.from(selectedCards))
                 });
 
                 if (response.ok) {
-                    showMessage('Paket erfolgreich gekauft!', 'success');
-                    await Promise.all([
-                        loadUserCoins(),
-                        loadAvailablePackages()
-                    ]);
+                    showMessage('Deck erfolgreich gespeichert!', 'success');
+                    loadCards();
                 } else {
-                    const errorText = await response.text();
-                    showMessage('Fehler beim Kauf: ' + errorText, 'error');
+                    showMessage('Fehler beim Speichern des Decks', 'error');
                 }
             } catch (error) {
-                showMessage('Fehler beim Kauf: ' + error, 'error');
+                showMessage('Fehler beim Speichern des Decks: ' + error, 'error');
             }
         }
 
@@ -221,10 +230,9 @@ public class ShopView
             }
         });
 
-        // Lade initial die Münzen
-        loadUserCoins();
-        loadAvailablePackages();
+        // Lade initial die Karten
+        loadCards();
     </script>
 </body>
 </html>";
-} 
+}

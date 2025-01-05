@@ -45,7 +45,7 @@ public class ProfileView
     </button>
 
     <div class='sidebar'>
-        <a href='/deck' class='nav-button'>Mein Deck</a>
+        <a href='/deck.html' class='nav-button'>Mein Deck</a>
         <a href='/shop' class='nav-button'>Shop</a>
         <a href='/stats.html' class='nav-button'>Statistiken</a>
         <a href='/trading' class='nav-button'>Handel</a>

@@ -46,7 +46,7 @@ public class StatsView
 
     <div class='sidebar'>
         <a href='/profile' class='nav-button'>Mein Profil</a>
-        <a href='/deck' class='nav-button'>Mein Deck</a>
+        <a href='/deck.html' class='nav-button'>Mein Deck</a>
         <a href='/shop' class='nav-button'>Shop</a>
         <a href='/trading' class='nav-button'>Handel</a>
         <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>

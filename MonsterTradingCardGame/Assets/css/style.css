@@ -688,3 +688,44 @@ input:focus {
         display: none;
     }
 }
+
+/* Neue Klassen für die Deck-Ansicht */
+.deck-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    width: 100%;
+}
+
+.deck-card {
+    flex: 0 0 200px;
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.deck-card.selected {
+    border-color: #00ff9d;
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+}
+
+.deck-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.deck-card h3 {
+    color: #00ff9d;
+    margin-bottom: 10px;
+}
+
+.deck-card p {
+    margin: 5px 0;
+    color: #ffffff;
+}
