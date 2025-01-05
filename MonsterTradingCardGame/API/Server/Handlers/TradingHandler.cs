@@ -3,10 +3,14 @@ using MonsterTradingCardGame.API.Server.DTOs;
 using MonsterTradingCardGame.Business.Services.Interfaces;
 using MonsterTradingCardGame.Domain.Models;
 using System.Text;
+using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.API.Server.Handlers;
 
-public class TradingHandler(ITradingService tradingService)
+public class TradingHandler(
+    ITradingService tradingService,
+    ICardRepository cardRepository,
+    IUserRepository userRepository)
 {
     public Response HandleGetTradings(string? format = null)
     {
@@ -48,8 +52,12 @@ public class TradingHandler(ITradingService tradingService)
                     Number = index + 1,
                     trade.Id,
                     trade.CardToTrade,
+                    CardName = cardRepository.GetCardById(trade.CardToTrade)?.Name,
+                    cardRepository.GetCardById(trade.CardToTrade)?.Damage,
+                    ElementType = cardRepository.GetCardById(trade.CardToTrade)?.ElementType.ToString(),
                     trade.Type,
                     MinimumDamage = trade.MinimumDamage ?? 0,
+                    userRepository.GetUserById(trade.UserId)?.Username,
                     trade.UserId
                 })
                 .OrderBy(t => t.Number)

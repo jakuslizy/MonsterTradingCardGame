@@ -14,12 +14,13 @@ namespace MonsterTradingCardGame.API.Server
         IPackageRepository packageRepository,
         IUserRepository userRepository,
         IStatsRepository statsRepository,
+        ICardRepository cardRepository,
         BattleQueue battleQueue,
         ITradingService tradingService)
     {
         private readonly UserHandler _userHandler = new(userService);
         private readonly PackageHandler _packageHandler = new(packageService, userRepository, packageRepository);
-        private readonly TradingHandler _tradingHandler = new(tradingService);
+        private readonly TradingHandler _tradingHandler = new(tradingService, cardRepository, userRepository);
         private readonly CardHandler _cardHandler = new(cardService);
         private readonly StatsHandler _statsHandler = new(userService, statsRepository, userRepository);
         private readonly BattleHandler _battleHandler = new(battleService, battleQueue);
@@ -93,6 +94,12 @@ namespace MonsterTradingCardGame.API.Server
             {
                 var shopView = new ShopView();
                 return shopView.Render();
+            }
+
+            if (method == "GET" && path == "/trading.html")
+            {
+                var tradingView = new TradingView();
+                return tradingView.Render();
             }
 
             if (method == "DELETE" && path == "/sessions")

@@ -48,7 +48,7 @@ public class ShopView
         <a href='/profile' class='nav-button'>Mein Profil</a>
         <a href='/deck.html' class='nav-button'>Mein Deck</a>
         <a href='/stats.html' class='nav-button'>Statistiken</a>
-        <a href='/trading' class='nav-button'>Handel</a>
+        <a href='/trading.html' class='nav-button'>Handel</a>
         <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>
     </div>
 

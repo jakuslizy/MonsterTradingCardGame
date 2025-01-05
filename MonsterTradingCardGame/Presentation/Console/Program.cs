@@ -49,6 +49,7 @@ public class Program
                 packageRepository,
                 userRepository,
                 statsRepository,
+                cardRepository,
                 battleQueue,
                 tradingService
             );

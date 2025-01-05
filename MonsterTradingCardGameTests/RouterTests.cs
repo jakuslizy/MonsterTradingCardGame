@@ -18,11 +18,13 @@ public class RouterTests
     private BattleQueue _battleQueue;
     private IStatsRepository _statsRepository;
     private IPackageRepository _packageRepository;
+    private ICardRepository _cardRepository;
 
     [SetUp]
     public void Setup()
     {
         _userRepository = Substitute.For<IUserRepository>();
+        _cardRepository = Substitute.For<ICardRepository>();
 
         _userService = Substitute.For<IUserService>();
         _cardService = Substitute.For<ICardService>();
@@ -42,6 +44,7 @@ public class RouterTests
             _packageRepository,
             _userRepository,
             _statsRepository,
+            _cardRepository,
             _battleQueue,
             _tradingService
         );
