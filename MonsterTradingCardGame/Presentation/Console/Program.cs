@@ -30,7 +30,7 @@ public class Program
                 ?.SetValue(cardRepository, cardService);
 
             var packageRepository = new PackageRepository(cardService);
-            var battleService = new BattleService(statsRepository, userRepository);
+            var battleService = new BattleService(statsRepository, userRepository, cardRepository);
             var userService = new UserService(userRepository, sessionRepository, statsRepository);
             var packageService = new PackageService(packageRepository, cardService);
 

@@ -5,15 +5,22 @@ namespace MonsterTradingCardGame.API.Server.Views;
 public class DeckView
 {
     private readonly string _cssPath;
+    private readonly Dictionary<string, string> _imageCache;
 
     public DeckView()
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         _cssPath = Path.Combine(baseDirectory, "Assets", "css", "style.css");
-
-        if (!File.Exists(_cssPath))
+        
+        // Initialisiere Image Cache
+        _imageCache = new Dictionary<string, string>();
+        var imagesPath = Path.Combine(baseDirectory, "Assets", "images");
+        
+        // Lade alle Bilder in den Cache
+        foreach (var imagePath in Directory.GetFiles(imagesPath, "*.png"))
         {
-            throw new FileNotFoundException($"CSS-Datei nicht gefunden: {_cssPath}");
+            var fileName = Path.GetFileName(imagePath);
+            _imageCache[fileName] = Convert.ToBase64String(File.ReadAllBytes(imagePath));
         }
     }
 
@@ -130,7 +137,19 @@ public class DeckView
             const cardDiv = document.createElement('div');
             cardDiv.className = 'deck-card' + (inDeck ? ' selected' : '');
             cardDiv.onclick = () => toggleCard(card.Id, cardDiv);
+            
+            // Bestimme das passende Bild basierend auf dem Kartennamen
+            let cardImage = 'default.png'; // Standard-Bild
+            if (card.Name.toLowerCase().includes('dragon')) cardImage = 'm6.png';
+            if (card.Name.toLowerCase().includes('knight')) cardImage = 'm4.png';
+            if (card.Name.toLowerCase().includes('spell')) cardImage = 'm2.png';
+            if (card.Name.toLowerCase().includes('elf')) cardImage = 'm5.png';
+            if (card.Name.toLowerCase().includes('goblin')) cardImage = 'm7.png';
+            if (card.Name.toLowerCase().includes('ork')) cardImage = 'm3.png';
+            if (card.Name.toLowerCase().includes('kraken')) cardImage = 'm8.png';
+            
             cardDiv.innerHTML = `
+                <img src='data:image/png;base64,${getImageBase64(cardImage)}' class='card-image' alt='${card.Name}'>
                 <h3>${card.Name}</h3>
                 <p>Schaden: ${card.Damage}</p>
                 <p>Element: ${card.ElementType || 'Normal'}</p>
@@ -229,6 +248,21 @@ public class DeckView
                 hamburger.classList.remove('active');
             }
         });
+
+        function getImageBase64(imageName) {
+            const imageMap = {
+                'm2.png': '" + _imageCache["m2.png"] + @"',
+                'm3.png': '" + _imageCache["m3.png"] + @"',
+                'm4.png': '" + _imageCache["m4.png"] + @"',
+                'm5.png': '" + _imageCache["m5.png"] + @"',
+                'm6.png': '" + _imageCache["m6.png"] + @"',
+                'm7.png': '" + _imageCache["m7.png"] + @"',
+                'm8.png': '" + _imageCache["m8.png"] + @"',
+                'default.png': '" + _imageCache["m1.png"] + @"'
+            };
+            
+            return imageMap[imageName] || imageMap['default.png'];
+        }
 
         // Lade initial die Karten
         loadCards();

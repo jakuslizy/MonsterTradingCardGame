@@ -8,11 +8,12 @@ using MonsterTradingCardGame.Data.Repositories.Interfaces;
 
 namespace MonsterTradingCardGame.Business.Services;
 
-public class BattleService(IStatsRepository statsRepository, IUserRepository userRepository)
+public class BattleService(IStatsRepository statsRepository, IUserRepository userRepository, ICardRepository cardRepository)
     : IBattleService
 {
     private readonly BattleLogic _battleLogic = new();
     private readonly Random _random = new();
+    private readonly ICardRepository _cardRepository = cardRepository;
 
     public string ExecuteBattle(User player1, User player2)
     {
@@ -66,13 +67,13 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
             {
                 case 1:
                     log.AppendLine($"{player1DisplayName} wins round {rounds}\n");
-                    TransferCard(card2, player2.Id, player1.Id);
+                    _cardRepository.TransferCard(card2.Id, player2.Id, player1.Id);
                     player2Deck.Remove(card2);
                     player1Deck.Add(card2);
                     break;
                 case 2:
                     log.AppendLine($"{player2DisplayName} wins round {rounds}\n");
-                    TransferCard(card1, player1.Id, player2.Id);
+                    _cardRepository.TransferCard(card1.Id, player1.Id, player2.Id);
                     player1Deck.Remove(card1);
                     player2Deck.Add(card1);
                     break;
@@ -104,40 +105,6 @@ public class BattleService(IStatsRepository statsRepository, IUserRepository use
             $"Final Score - {player1DisplayName}: {player1Deck.Count} cards, {player2DisplayName}: {player2Deck.Count} cards");
 
         return log.ToString();
-    }
-
-    private void TransferCard(Card card, int fromUserId, int toUserId)
-    {
-        using var connection = DataLayer.Instance.CreateConnection();
-        using var transaction = connection.BeginTransaction();
-        try
-        {
-            using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = @"
-                UPDATE cards 
-                SET user_id = @toUserId,
-                    in_deck = true
-                WHERE id = @cardId 
-                AND user_id = @fromUserId";
-
-            DataLayer.AddParameterWithValue(command, "@cardId", DbType.String, card.Id);
-            DataLayer.AddParameterWithValue(command, "@fromUserId", DbType.Int32, fromUserId);
-            DataLayer.AddParameterWithValue(command, "@toUserId", DbType.Int32, toUserId);
-
-            var rowsAffected = command.ExecuteNonQuery();
-            if (rowsAffected == 0)
-            {
-                throw new InvalidOperationException($"Card {card.Id} could not be transferred");
-            }
-
-            transaction.Commit();
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
     }
 
     private void UpdateStats(User winner, User loser, bool isDraw)
