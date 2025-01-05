@@ -58,6 +58,7 @@ public class TradingView
         <a href='/deck.html' class='nav-button'>Mein Deck</a>
         <a href='/shop' class='nav-button'>Shop</a>
         <a href='/stats.html' class='nav-button'>Statistiken</a>
+        <a href='/battle.html' class='nav-button'>Battle Arena</a>
         <a href='javascript:void(0)' onclick='logout()' class='nav-button'>Ausloggen</a>
     </div>
 

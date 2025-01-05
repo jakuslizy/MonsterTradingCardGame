@@ -126,6 +126,12 @@ namespace MonsterTradingCardGame.API.Server
                 return new DeckView().Render();
             }
 
+            if (method == "GET" && path == "/battle.html")
+            {
+                var battleView = new BattleView();
+                return battleView.Render();
+            }
+
             // Alle anderen Routen sind geschützt
             return HandleProtectedRoute(method, path, headers, body, queryParams);
         }
