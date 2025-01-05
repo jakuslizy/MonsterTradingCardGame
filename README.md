@@ -80,6 +80,10 @@ MonsterTradingCardGame/
 │   └── Server/          # Custom HTTP server implementation
 │   └── DTOs/            # Data transfer objects
 │   └── Handlers/        # Request handlers
+│   └── Views/           # Response views
+├── Assets/
+│   └── css/             # Styling
+│   └── images/          # Card images
 ├── Business/
 │   ├── Logic/           # Game and battle logic
 │   ├── Factories/       # Card creation
